@@ -212,21 +212,13 @@ function makeWoundEntry(data = {}) {
           <label class="conditional wound-perilesional-other">Outro cuidado perilesional
             <input data-field="perilesionalOther" placeholder="Descreva o cuidado perilesional" />
           </label>
-          <label>Cobertura primária 1
-            <select data-field="primaryCover1">
-              ${buildOptions(primaryOptions, data.primaryCover1 || "")}
+          <label>Cobertura primária
+            <select data-field="primaryCover">
+              ${buildOptions(primaryOptions, data.primaryCover || "")}
             </select>
           </label>
-          <label>Cobertura primária 2
-            <select data-field="primaryCover2">
-              ${buildOptions(primaryOptions, data.primaryCover2 || "")}
-            </select>
-          </label>
-          <label class="conditional wound-primary1-other">Outra cobertura primária 1
-            <input data-field="primaryCover1Other" placeholder="Descreva a cobertura" />
-          </label>
-          <label class="conditional wound-primary2-other">Outra cobertura primária 2
-            <input data-field="primaryCover2Other" placeholder="Descreva a cobertura" />
+          <label class="conditional wound-primary-other">Outra cobertura primária
+            <input data-field="primaryCoverOther" placeholder="Descreva a cobertura" />
           </label>
           <label>Cobertura secundária
             <select data-field="secondaryCover">
@@ -312,8 +304,7 @@ function toggleWoundConditionals() {
     const location = woundValue(entry, "location");
     const cleaning = woundValue(entry, "cleaning");
     const perilesional = woundValue(entry, "perilesionalCleaning");
-    const primary1 = woundValue(entry, "primaryCover1");
-    const primary2 = woundValue(entry, "primaryCover2");
+    const primary = woundValue(entry, "primaryCover");
     const secondary = woundValue(entry, "secondaryCover");
     const occlusion = woundValue(entry, "occlusion");
 
@@ -322,8 +313,7 @@ function toggleWoundConditionals() {
     entry.querySelectorAll(".wound-other-location").forEach((el) => el.classList.toggle("is-hidden", location !== "other"));
     entry.querySelectorAll(".wound-cleaning-other").forEach((el) => el.classList.toggle("is-hidden", !(status === "performed" && cleaning === "other")));
     entry.querySelectorAll(".wound-perilesional-other").forEach((el) => el.classList.toggle("is-hidden", !(status === "performed" && perilesional === "other")));
-    entry.querySelectorAll(".wound-primary1-other").forEach((el) => el.classList.toggle("is-hidden", !(status === "performed" && primary1 === "other")));
-    entry.querySelectorAll(".wound-primary2-other").forEach((el) => el.classList.toggle("is-hidden", !(status === "performed" && primary2 === "other")));
+    entry.querySelectorAll(".wound-primary-other").forEach((el) => el.classList.toggle("is-hidden", !(status === "performed" && primary === "other")));
     entry.querySelectorAll(".wound-secondary-other").forEach((el) => el.classList.toggle("is-hidden", !(status === "performed" && secondary === "other")));
     entry.querySelectorAll(".wound-occlusion-other").forEach((el) => el.classList.toggle("is-hidden", !(status === "performed" && occlusion === "other")));
   });
@@ -668,10 +658,7 @@ function getWoundSentence() {
       const bed = woundValue(entry, "bed");
       const cleaning = resolvedWoundOption(entry, "cleaning", "cleaningOther");
       const perilesional = resolvedWoundOption(entry, "perilesionalCleaning", "perilesionalOther");
-      const primaryCovers = [
-        resolvedWoundOption(entry, "primaryCover1", "primaryCover1Other"),
-        resolvedWoundOption(entry, "primaryCover2", "primaryCover2Other")
-      ].filter(has);
+      const primaryCover = resolvedWoundOption(entry, "primaryCover", "primaryCoverOther");
       const secondary = resolvedWoundOption(entry, "secondaryCover", "secondaryCoverOther");
       const occlusion = resolvedWoundOption(entry, "occlusion", "occlusionOther");
       const fragments = [`Realizado curativo em região de ${loc}.`];
@@ -695,9 +682,15 @@ function getWoundSentence() {
       if (careParts.length) fragments.push(`${sentenceCase(careParts.join(" e "))}.`);
 
       const coverParts = [];
-      if (primaryCovers.length) coverParts.push(`Aplicada cobertura com ${primaryCovers.join(" e ")}`);
-      if (has(secondary)) coverParts.push(`${primaryCovers.length ? "cobertura secundária" : "Aplicada cobertura secundária"} com ${secondary}`);
-      if (has(occlusion)) coverParts.push(`${primaryCovers.length || has(secondary) ? "oclusão" : "Realizada oclusão"} com ${occlusionMap[occlusion] || occlusion}, mantendo curativo limpo, seco e bem fixado`);
+      if (has(primaryCover) && has(secondary)) {
+        coverParts.push(`Aplicada cobertura primária com ${primaryCover}`);
+        coverParts.push(`cobertura secundária com ${secondary}`);
+      } else if (has(primaryCover)) {
+        coverParts.push(`Aplicada cobertura com ${primaryCover}`);
+      } else if (has(secondary)) {
+        coverParts.push(`Aplicada cobertura secundária com ${secondary}`);
+      }
+      if (has(occlusion)) coverParts.push(`${has(primaryCover) || has(secondary) ? "oclusão" : "Realizada oclusão"} com ${occlusionMap[occlusion] || occlusion}, mantendo curativo limpo, seco e bem fixado`);
 
       if (coverParts.length) fragments.push(`${coverParts.join(" e ")}.`);
       fragments.push("Paciente orientado e segue aos cuidados da equipe de enfermagem.");
