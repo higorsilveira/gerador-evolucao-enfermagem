@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f766e" />
+    <meta name="description" content="Gerador local de evolução de enfermagem para visita hospitalar." />
+    <link rel="manifest" href="public/manifest.json" />
+    <link rel="stylesheet" href="styles.css" />
+    <title>Gerador de Evolução de Enfermagem</title>
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <p class="eyebrow">MVP local · sem banco de dados</p>
+        <h1>Gerador de Evolução de Enfermagem</h1>
+        <p class="subtitle">Preencha apenas o que se aplica. Campos vazios não entram na evolução.</p>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="secondary" id="btnDefault">Paciente padrão</button>
+        <button type="button" class="ghost" id="btnClear">Limpar</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="form-panel" aria-label="Formulário de visita de enfermagem">
+        <details open>
+          <summary>1. Dados iniciais</summary>
+          <div class="grid two">
+            <label>Hospital
+              <input id="hospital" value="HOSPITAL DA REGIÃO LESTE" />
+            </label>
+            <label>Setor
+              <input id="sector" value="UTO — ENFERMARIA" />
+            </label>
+            <label>Plantão
+              <input id="shift" value="PLANTÃO DIURNO" />
+            </label>
+            <label>Paciente
+              <input id="patientName" placeholder="Nome completo" />
+            </label>
+            <label>Data de nascimento
+              <input id="patientBirthDate" type="date" />
+            </label>
+            <label>Leito
+              <input id="bed" placeholder="Ex.: 405.2" />
+            </label>
+            <label class="full">DIH/DPO/Diagnóstico
+              <input id="dihDpo" placeholder="Ex.: 11º DIH: Fratura triplanar à direita." />
+            </label>
+            <label class="full">HPP/Comorbidades
+              <textarea id="hpp" rows="2" placeholder="Ex.: HAS, DM2, hipotireoidismo."></textarea>
+            </label>
+            <label>Alergias
+              <select id="allergyStatus">
+                <option value=""></option>
+                <option value="no">Não</option>
+                <option value="yes">Sim</option>
+              </select>
+            </label>
+            <label>Uso de medicação contínua
+              <select id="continuousMedsStatus">
+                <option value=""></option>
+                <option value="no">Não</option>
+                <option value="yes">Sim</option>
+              </select>
+            </label>
+            <label class="full conditional" data-show="allergyStatus:yes">Descrever alergias
+              <input id="allergyDetails" placeholder="Ex.: dipirona, penicilina, látex" />
+            </label>
+            <label class="full conditional" data-show="continuousMedsStatus:yes">Descrever medicação contínua
+              <input id="continuousMedsDetails" placeholder="Ex.: losartana, metformina, levotiroxina" />
+            </label>
+            <label class="full">História da admissão <span class="hint">opcional</span>
+              <textarea id="admissionHistory" rows="2" placeholder="Ex.: Paciente vítima de queda..."></textarea>
+            </label>
+            <label>Braden — classificação
+              <select id="bradenClass">
+                <option value=""></option>
+                <option>Sem risco para lesão por pressão</option>
+                <option>Risco leve para lesão por pressão</option>
+                <option>Risco moderado para lesão por pressão</option>
+                <option>Risco alto para lesão por pressão</option>
+                <option>Risco muito alto para lesão por pressão</option>
+              </select>
+            </label>
+            <label>Braden — pontos
+              <input id="bradenPoints" inputmode="numeric" placeholder="Ex.: 20" />
+            </label>
+            <label>Morse — classificação
+              <select id="morseClass">
+                <option value=""></option>
+                <option>Baixo risco para queda</option>
+                <option>Médio risco para queda</option>
+                <option>Alto risco para queda</option>
+              </select>
+            </label>
+            <label>Morse — pontos
+              <input id="morsePoints" inputmode="numeric" placeholder="Ex.: 35" />
+            </label>
+          </div>
+        </details>
+
+        <details open>
+          <summary>2. Avaliação geral</summary>
+          <div class="grid two">
+            <label>Acompanhante
+              <select id="companionStatus">
+                <option value=""></option>
+                <option value="sem">Sem acompanhante</option>
+                <option value="com">Acompanhado(a)</option>
+              </select>
+            </label>
+            <label>Grau/nome do acompanhante
+              <input id="companionRelation" placeholder="Ex.: avó, esposa, mãe" />
+            </label>
+            <label class="full">Nível de consciência/estado geral
+              <select id="consciousness">
+                <option value=""></option>
+                <option value="bom">Bom estado geral, consciente, orientado e comunicativo</option>
+                <option value="consciente_orientado">Consciente e orientado</option>
+                <option value="sonolento">Sonolento</option>
+                <option value="confuso">Confuso</option>
+                <option value="agitado">Agitado</option>
+                <option value="sedado">Sedado</option>
+                <option value="inconsciente">Inconsciente</option>
+                <option value="personalizado">Personalizado</option>
+              </select>
+            </label>
+            <label class="full conditional" data-show="consciousness:personalizado">Descrição personalizada do nível de consciência
+              <textarea id="consciousnessCustom" rows="2" placeholder="Descreva como deseja que apareça na evolução"></textarea>
+            </label>
+            <label>Queixa álgica
+              <select id="painStatus">
+                <option value=""></option>
+                <option value="no">Nega dor</option>
+                <option value="yesRoutine">Refere dor — conduta de rotina/prescrição</option>
+                <option value="yesMedical">Refere dor — equipe médica comunicada</option>
+              </select>
+            </label>
+            <label>Escala de dor
+              <input id="painScale" inputmode="numeric" placeholder="0 a 10" />
+            </label>
+            <label class="full">Local da dor
+              <input id="painLocation" placeholder="Ex.: joelho direito, tornozelo esquerdo" />
+            </label>
+          </div>
+        </details>
+
+        <details>
+          <summary>3. Oxigenação e tórax</summary>
+          <div class="grid two">
+            <label>Tipo de oxigenação
+              <select id="oxygenType">
+                <option value=""></option>
+                <option value="roomAir">Ar ambiente</option>
+                <option value="roomAirTqt">Ar ambiente com TQT</option>
+                <option value="nasal">Cateter nasal</option>
+                <option value="simpleMask">Máscara simples</option>
+                <option value="venturi">Máscara de Venturi</option>
+                <option value="nonRebreather">Máscara não reinalante</option>
+                <option value="macro">Macronebulização</option>
+                <option value="tqtO2">TQT com O₂</option>
+                <option value="vni">VNI</option>
+                <option value="vm">Ventilação mecânica invasiva</option>
+                <option value="highFlow">Alto fluxo</option>
+              </select>
+            </label>
+            <label>SatO₂ (%)
+              <input id="saturation" inputmode="decimal" placeholder="Ex.: 98" />
+            </label>
+            <label>Fluxo O₂ (L/min)
+              <input id="oxygenFlow" inputmode="decimal" placeholder="Ex.: 2" />
+            </label>
+            <label>FiO₂ (%)
+              <input id="fio2" inputmode="decimal" placeholder="Ex.: 35" />
+            </label>
+            <label>FR (irpm)
+              <input id="respRate" inputmode="numeric" placeholder="Ex.: 20" />
+            </label>
+            <label>Dispositivo/observação
+              <input id="oxygenObservation" placeholder="Ex.: boa adaptação à máscara" />
+            </label>
+            <fieldset class="full checkbox-group">
+              <legend>Sinais respiratórios</legend>
+              <label><input type="checkbox" id="eupneic" /> Eupneico</label>
+              <label><input type="checkbox" id="noDistress" /> Sem desconforto respiratório</label>
+              <label><input type="checkbox" id="tirage" /> Tiragem</label>
+              <label><input type="checkbox" id="cyanosis" /> Cianose</label>
+              <label><input type="checkbox" id="noisyBreathing" /> Respiração ruidosa</label>
+              <label><input type="checkbox" id="dyspnea" /> Dispneia</label>
+              <label><input type="checkbox" id="tachypnea" /> Taquipneia</label>
+            </fieldset>
+            <label>Expansibilidade torácica
+              <select id="thorax">
+                <option value=""></option>
+                <option value="symmetric">Simétrica/preservada</option>
+                <option value="asymmetricRight">Assimétrica — menor expansão à direita</option>
+                <option value="asymmetricLeft">Assimétrica — menor expansão à esquerda</option>
+                <option value="deep">Movimentos profundos</option>
+                <option value="superficial">Movimentos superficiais</option>
+              </select>
+            </label>
+          </div>
+        </details>
+
+        <details>
+          <summary>4. Alimentação e eliminações</summary>
+          <div class="grid two">
+            <label>Alimentação
+              <select id="feedingRoute">
+                <option value=""></option>
+                <option value="vo">VO — via oral</option>
+                <option value="sne">SNE — sonda nasoenteral</option>
+                <option value="sng">SNG — sonda nasogástrica</option>
+                <option value="gtt">GTT — gastrostomia</option>
+                <option value="jjt">JJT — jejunostomia</option>
+                <option value="npt">NPT</option>
+                <option value="npp">NPP</option>
+                <option value="npo">Jejum/NPO</option>
+                <option value="suspended">Dieta suspensa</option>
+                <option value="refusal">Recusa alimentar/baixa aceitação</option>
+              </select>
+            </label>
+            <label>Aceitação/tolerância
+              <select id="feedingAcceptance">
+                <option value=""></option>
+                <option value="boa">Boa aceitação/tolerância</option>
+                <option value="parcial">Aceitação parcial</option>
+                <option value="baixa">Baixa aceitação</option>
+                <option value="nausea">Náuseas</option>
+                <option value="vomit">Vômitos</option>
+                <option value="distension">Distensão abdominal</option>
+              </select>
+            </label>
+            <label class="full">Observação da alimentação
+              <input id="feedingObservation" placeholder="Ex.: dieta conforme prescrição, sem náuseas ou vômitos" />
+            </label>
+            <label>Diurese
+              <select id="urine">
+                <option value=""></option>
+                <option value="spontaneous">Diurese espontânea presente</option>
+                <option value="svd">Diurese por SVD</option>
+                <option value="sva">Diurese por SVA</option>
+                <option value="absent">Sem diurese referida/observada</option>
+                <option value="notInformed">Não informado</option>
+              </select>
+            </label>
+            <label class="full conditional" data-show="urine:svd,sva">Coloração e aspecto
+              <select id="urineAspect">
+                <option value=""></option>
+                <option value="clear">Amarelo-clara, aspecto límpido, sem sedimentos e sem hematúria aparente</option>
+                <option value="concentrated">Amarelo-escura/concentrada, sem hematúria aparente</option>
+                <option value="bloody">Hematúrica, com presença de sangue visível em bolsa coletora</option>
+                <option value="turbid">Amarelo-turva, com presença de sedimentos em bolsa coletora</option>
+              </select>
+            </label>
+            <label class="conditional" data-show="urine:svd,sva">Quantidade (ml)
+              <input id="urineAmount" inputmode="numeric" placeholder="Ex.: 300" />
+            </label>
+            <label>Evacuação
+              <select id="bowel">
+                <option value=""></option>
+                <option value="present">Evacuação presente</option>
+                <option value="absent">Evacuação ausente</option>
+                <option value="rectalTube">Evacuação por sonda retal</option>
+                <option value="diaper">Em uso de fralda</option>
+                <option value="notInformed">Não informado</option>
+              </select>
+            </label>
+          </div>
+        </details>
+
+        <details>
+          <summary>5. Dispositivos de acesso e drenos</summary>
+          <div class="grid two">
+            <label>Dispositivo de acesso
+              <select id="accessType">
+                <option value=""></option>
+                <option value="none">Desprovido de acesso venoso</option>
+                <option value="avp">AVP</option>
+                <option value="cvc">CVC</option>
+                <option value="picc">PICC</option>
+                <option value="port">Port-a-Cath</option>
+                <option value="shilley">Shilley</option>
+                <option value="permcath">Permcath</option>
+                <option value="arterial">Cateter arterial</option>
+                <option value="other">Outro</option>
+              </select>
+            </label>
+            <label>Local/membro do acesso
+              <input id="accessLocation" placeholder="Ex.: MSE, subclávia direita, jugular E" />
+            </label>
+            <label>Aspecto do curativo do acesso
+              <select id="accessDressing">
+                <option value=""></option>
+                <option value="clean">Limpo, seco e íntegro</option>
+                <option value="dirty">Com sujidade</option>
+                <option value="detached">Parcialmente descolado</option>
+                <option value="dirtyDetached">Com sujidade e descolado</option>
+                <option value="phlogistic">Com sinais flogísticos</option>
+                <option value="bleeding">Com sangramento/sujidade hemática</option>
+              </select>
+            </label>
+            <label>Observação do acesso
+              <input id="accessObservation" placeholder="Ex.: salinizado, infundindo, solicitado troca" />
+            </label>
+            <label>Dreno
+              <select id="hasDrain">
+                <option value=""></option>
+                <option value="no">Não</option>
+                <option value="yes">Sim</option>
+              </select>
+            </label>
+            <label>Local do dreno
+              <input id="drainLocation" placeholder="Ex.: região trocantérica direita" />
+            </label>
+            <label>Quantidade do débito
+              <select id="drainAmount">
+                <option value=""></option>
+                <option>Ausente</option>
+                <option>Pequena</option>
+                <option>Moderada</option>
+                <option>Grande</option>
+              </select>
+            </label>
+            <label>Aspecto do débito
+              <input id="drainAspect" placeholder="Ex.: serossanguinolento, sem odor fétido" />
+            </label>
+            <label class="full">Curativo do óstio do dreno
+              <input id="drainDressing" placeholder="Ex.: limpo, seco e íntegro" />
+            </label>
+          </div>
+        </details>
+
+        <details>
+          <summary>6. Curativos, lesões e feridas operatórias</summary>
+          <div class="grid two">
+            <label>Presença de curativo/lesão
+              <select id="woundStatus">
+                <option value=""></option>
+                <option value="none">Não apresenta curativo/lesão aparente nas áreas avaliadas</option>
+                <option value="clean">Curativo limpo, seco e íntegro</option>
+                <option value="dirty">Curativo com sujidade</option>
+                <option value="wet">Curativo úmido</option>
+                <option value="bleeding">Curativo com sangramento aparente</option>
+                <option value="secretion">Curativo com secreção aparente</option>
+                <option value="performed">Curativo realizado no plantão</option>
+              </select>
+            </label>
+            <label>Local
+              <input id="woundLocation" placeholder="Ex.: joelho D, sacral, tornozelo E" />
+            </label>
+            <label class="full">Sinais ao redor/aspecto da lesão
+              <input id="woundSigns" placeholder="Ex.: sem hiperemia, sem odor fétido, bordas íntegras" />
+            </label>
+            <label>Limpeza
+              <input id="woundCleaning" placeholder="Ex.: SF 0,9%" />
+            </label>
+            <label>Cobertura primária
+              <input id="primaryCover" placeholder="Ex.: Aquacel" />
+            </label>
+            <label>Cobertura secundária
+              <input id="secondaryCover" placeholder="Ex.: compressa estéril" />
+            </label>
+            <label>Oclusão/fixação
+              <input id="occlusion" placeholder="Ex.: filme transparente" />
+            </label>
+          </div>
+        </details>
+
+        <details>
+          <summary>7. Mobilidade e avaliação ortopédica</summary>
+          <div class="grid two">
+            <label>Mobilidade
+              <select id="mobility">
+                <option value=""></option>
+                <option value="walkAlone">Deambula sem auxílio</option>
+                <option value="walkHelp">Deambula com auxílio da equipe</option>
+                <option value="walker">Deambula com andador</option>
+                <option value="crutch">Deambula com muleta</option>
+                <option value="cane">Deambula com bengala</option>
+                <option value="wheelchair">Cadeira de rodas</option>
+                <option value="wheelchairIndependent">Cadeirante com autonomia</option>
+                <option value="wheelchairDependent">Cadeirante sem autonomia</option>
+                <option value="bedridden">Acamado</option>
+                <option value="restrictedBed">Restrito ao leito</option>
+                <option value="reduced">Mobilidade reduzida</option>
+                <option value="paraplegic">Paraplégico</option>
+                <option value="tetraplegic">Tetraplégico</option>
+                <option value="noWalk">Não deambula no momento</option>
+                <option value="unstable">Marcha instável</option>
+                <option value="fallRisk">Deambula com risco de queda</option>
+                <option value="limping">Deambula com claudicação</option>
+                <option value="postOpLimited">Pós-operatório com limitação de mobilidade</option>
+              </select>
+            </label>
+            <label>Complemento da mobilidade
+              <input id="mobilityDetail" placeholder="Ex.: restrição de carga em MID" />
+            </label>
+            <label>Avaliação ortopédica
+              <select id="orthoType">
+                <option value=""></option>
+                <option value="normalWithImmobilization">Membro sem alterações com gesso/tala/fixador</option>
+                <option value="normalWithoutImmobilization">Membro sem alterações sem imobilização</option>
+                <option value="alteredWithImmobilization">Membro com alteração com gesso/tala/fixador</option>
+                <option value="alteredWithoutImmobilization">Membro com alteração sem imobilização</option>
+                <option value="fixatorNormal">Fixador externo sem alteração</option>
+                <option value="fixatorAltered">Fixador externo com alteração</option>
+                <option value="tractionNormal">Tração sem alteração</option>
+                <option value="tractionAltered">Tração com alteração</option>
+              </select>
+            </label>
+            <label>Membro/região acometida
+              <input id="orthoLimb" placeholder="Ex.: MID, MIE, tornozelo direito" />
+            </label>
+            <label>Edema
+              <input id="orthoEdema" placeholder="Ex.: sem edema aparente / edema em tornozelo" />
+            </label>
+            <label>Perfusão/cor/temperatura
+              <input id="orthoPerfusion" placeholder="Ex.: extremidade corada, aquecida e perfundida" />
+            </label>
+            <label>Sensibilidade
+              <input id="orthoSensitivity" placeholder="Ex.: preservada, nega dormência" />
+            </label>
+            <label>Movimento
+              <input id="orthoMovement" placeholder="Ex.: preservado nas extremidades livres" />
+            </label>
+            <label class="full">Imobilização/tração/fixador
+              <input id="orthoDevice" placeholder="Ex.: tala bota íntegra, seca e bem posicionada" />
+            </label>
+          </div>
+        </details>
+
+        <details>
+          <summary>8. Pele e identificação</summary>
+          <div class="grid two">
+            <label>Pele geral
+              <select id="skin">
+                <option value=""></option>
+                <option value="intact">Pele íntegra nas demais áreas avaliadas</option>
+                <option value="risk">Pele com risco aumentado para lesão por pressão</option>
+                <option value="lesion">Apresenta lesão em área especificada</option>
+              </select>
+            </label>
+            <label>Observação da pele
+              <input id="skinObservation" placeholder="Ex.: sem lesões aparentes" />
+            </label>
+            <label>Placa no leito
+              <select id="bedPlate">
+                <option value=""></option>
+                <option value="yes">Sim</option>
+                <option value="no">Não</option>
+              </select>
+            </label>
+            <label>Pulseira de identificação
+              <select id="wristband">
+                <option value=""></option>
+                <option value="yes">Sim</option>
+                <option value="no">Não</option>
+              </select>
+            </label>
+          </div>
+        </details>
+
+        <details>
+          <summary>9. Diagnósticos, condutas e pendências</summary>
+          <div class="diagnosis-grid">
+            <label>Risco de infecção
+              <select id="diagInfection"><option value="auto">Automático</option><option value="yes">Sim</option><option value="no">Não</option></select>
+            </label>
+            <label>Risco de integridade da pele prejudicada
+              <select id="diagSkin"><option value="auto">Automático</option><option value="yes">Sim</option><option value="no">Não</option></select>
+            </label>
+            <label>Risco de quedas
+              <select id="diagFalls"><option value="auto">Automático</option><option value="yes">Sim</option><option value="no">Não</option></select>
+            </label>
+            <label>Risco de dor aguda/Dor aguda
+              <select id="diagPain"><option value="auto">Automático</option><option value="yes">Sim</option><option value="no">Não</option></select>
+            </label>
+            <label>Risco de alteração da perfusão periférica
+              <select id="diagPerfusion"><option value="auto">Automático</option><option value="yes">Sim</option><option value="no">Não</option></select>
+            </label>
+          </div>
+
+          <fieldset class="checkbox-group">
+            <legend>Condutas rápidas</legend>
+            <label><input type="checkbox" id="condVitals" checked /> Monitorar sinais vitais conforme rotina</label>
+            <label><input type="checkbox" id="condConsciousness" /> Monitorar nível de consciência</label>
+            <label><input type="checkbox" id="condPain" /> Avaliar e registrar queixas álgicas</label>
+            <label><input type="checkbox" id="condComfort" checked /> Manter medidas de conforto e bem-estar</label>
+            <label><input type="checkbox" id="condFalls" /> Manter medidas de prevenção de quedas</label>
+            <label><input type="checkbox" id="condDiet" /> Observar aceitação/tolerância da dieta</label>
+            <label><input type="checkbox" id="condElim" /> Avaliar eliminações urinárias e intestinais</label>
+            <label><input type="checkbox" id="condSkin" /> Realizar avaliação diária da pele</label>
+            <label><input type="checkbox" id="condAccess" /> Avaliar acesso/dispositivo quanto à permeabilidade e sinais flogísticos</label>
+            <label><input type="checkbox" id="condOrtho" /> Observar membro/imobilização/tração quanto à perfusão, dor, edema e sensibilidade</label>
+            <label><input type="checkbox" id="condObservation" checked /> Manter paciente em observação conforme rotina do setor</label>
+          </fieldset>
+
+          <div class="grid two top-space">
+            <label class="full">Medicações importantes
+              <input id="importantMeds" placeholder="Opcional" />
+            </label>
+            <label class="full">Exames/pareceres pendentes
+              <input id="pendingExams" placeholder="Ex.: aguarda RX, parecer vascular" />
+            </label>
+            <label class="full">Programação
+              <input id="programming" placeholder="Ex.: programação cirúrgica" />
+            </label>
+            <label class="full">Conduta/pendências do plantão
+              <textarea id="pendingNotes" rows="2" placeholder="Ex.: aguarda cirurgia; equipe ciente"></textarea>
+            </label>
+            <label class="full">Assinatura
+              <input id="signature" placeholder="Ex.: Enf.ª Núbia Altina... COREN-DF..." />
+            </label>
+          </div>
+        </details>
+      </section>
+
+      <aside class="preview-panel" aria-label="Evolução gerada">
+        <div class="preview-card">
+          <div class="preview-header">
+            <div>
+              <p class="eyebrow">Texto final</p>
+              <h2>Evolução gerada</h2>
+            </div>
+            <span id="statusBadge" class="badge">rascunho</span>
+          </div>
+          <textarea id="output" readonly rows="28" aria-label="Texto da evolução gerada"></textarea>
+          <div class="preview-actions">
+            <button type="button" id="btnCopy">Copiar evolução</button>
+            <button type="button" class="secondary" id="btnSave">Salvar rascunho local</button>
+            <button type="button" class="secondary" id="btnLoad">Carregar rascunho</button>
+            <button type="button" class="ghost" id="btnTxt">Baixar .txt</button>
+          </div>
+          <p class="privacy-note">Os dados ficam no navegador. O rascunho local só é salvo se você tocar em “Salvar rascunho local”.</p>
+        </div>
+      </aside>
+    </main>
+
+    <footer class="app-footer">
+      <p>Uso assistivo para agilizar registro. Revise a evolução antes de colar no prontuário.</p>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>

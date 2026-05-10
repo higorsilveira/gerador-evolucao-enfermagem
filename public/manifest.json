@@ -1,0 +1,10 @@
+{
+  "name": "Gerador de Evolução de Enfermagem",
+  "short_name": "Evolução Enf.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4fbfa",
+  "theme_color": "#0f766e",
+  "description": "Gerador local de evolução de enfermagem para visita hospitalar.",
+  "icons": []
+}
