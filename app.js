@@ -6,6 +6,54 @@ const value = (id) => ($(id)?.value || "").trim();
 const checked = (id) => Boolean($(id)?.checked);
 const has = (text) => Boolean(String(text || "").trim());
 const lower = (text) => String(text || "").toLowerCase();
+const DEFAULT_SIGNATURE = "Enf.ª Núbia Altina de Carvalho da Silveira\nCOREN-DF 635.011";
+const WOUND_STORAGE_KEY = "__wounds__";
+
+const woundLocations = [
+  ["quadril_d", "Quadril D"],
+  ["quadril_e", "Quadril E"],
+  ["trocanter_d", "Trocânter D"],
+  ["trocanter_e", "Trocânter E"],
+  ["joelho_d", "Joelho D"],
+  ["joelho_e", "Joelho E"],
+  ["tornozelo_d", "Tornozelo D"],
+  ["tornozelo_e", "Tornozelo E"],
+  ["sacral", "Sacral"],
+  ["calcaneo_d", "Calcâneo D"],
+  ["calcaneo_e", "Calcâneo E"],
+  ["amputacao_transtibial_e", "Coto cirúrgico de amputação transtibial à esquerda"],
+  ["amputacao_transtibial_d", "Coto cirúrgico de amputação transtibial à direita"],
+  ["foa_joelho_d", "Ferida operatória aberta em joelho direito, sem sutura, em cicatrização por segunda intenção"],
+  ["other", "Outro"]
+];
+
+const woundLocationMap = Object.fromEntries(woundLocations);
+const dressingOptionLabels = [
+  "Aquacel",
+  "Alginato",
+  "Carvão ativado",
+  "Acticoat",
+  "Hidrogel",
+  "Hidrocolóide",
+  "Petrolato",
+  "Allevyn",
+  "Biatain",
+  "Gazes estéreis",
+  "Compressa estéril"
+];
+
+function escapeHtml(text) {
+  return String(text || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function buildOptions(options, selected = "") {
+  return options.map(([valueText, label]) => `<option value="${escapeHtml(valueText)}"${valueText === selected ? " selected" : ""}>${escapeHtml(label)}</option>`).join("");
+}
 
 function line(text) {
   return has(text) ? text.trim() : "";
@@ -19,6 +67,266 @@ function endWithPeriod(text) {
 
 function joinSentence(parts) {
   return parts.filter(has).join(" ").replace(/\s+/g, " ").trim();
+}
+
+function sentenceCase(text) {
+  if (!has(text)) return "";
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+function inferDiabetesRisk() {
+  const text = lower([value("hpp"), value("dihDpo"), value("admissionHistory"), value("importantMeds")].join(" "));
+  return ["diabetes", "dm ", "dm1", "dm2", "insulina", "glicem"].some((term) => text.includes(term));
+}
+
+function likelyPressureRisk() {
+  return ["bedridden", "restrictedBed", "wheelchair", "wheelchairIndependent", "wheelchairDependent", "paraplegic", "tetraplegic", "reduced", "postOpLimited", "noWalk"].includes(value("mobility"))
+    || value("skin") === "risk"
+    || value("skin") === "lesion"
+    || value("bradenClass").startsWith("Risco");
+}
+
+function isMobilityReduced() {
+  return has(value("mobility")) && value("mobility") !== "walkAlone";
+}
+
+function bindAutoUpdate(root = document) {
+  root.querySelectorAll("input, select, textarea").forEach((el) => {
+    if (el.dataset.bound === "true") return;
+    el.addEventListener("input", () => {
+      toggleConditionals();
+      generateEvolution();
+    });
+    el.addEventListener("change", () => {
+      toggleConditionals();
+      generateEvolution();
+    });
+    el.dataset.bound = "true";
+  });
+}
+
+function woundEntries() {
+  return Array.from(document.querySelectorAll(".wound-entry"));
+}
+
+function woundField(entry, name) {
+  return entry.querySelector(`[data-field="${name}"]`);
+}
+
+function woundValue(entry, name) {
+  return (woundField(entry, name)?.value || "").trim();
+}
+
+function makeWoundEntry(data = {}) {
+  const entry = document.createElement("section");
+  entry.className = "wound-entry";
+  const primaryOptions = [["", ""], ...dressingOptionLabels.map((label) => [label, label]), ["other", "Outro"]];
+  const occlusionOptions = [["", ""], ["micropore", "Micropore"], ["filme_transparente", "Filme transparente"], ["other", "Outro"]];
+  const cleaningOptions = [["", ""], ["sf_0_9", "Soro fisiológico 0,9%"], ["phmb", "Solução de PHMB (poliexametileno biguanida)"], ["other", "Outro"]];
+  const perilesionalOptions = [["", ""], ["clorexidina", "Clorexidina"], ["other", "Outro"]];
+  entry.innerHTML = `
+    <div class="wound-entry-header">
+      <h3 class="wound-entry-title"></h3>
+      <button type="button" class="ghost btn-remove-wound">Remover</button>
+    </div>
+    <div class="wound-entry-grid">
+      <label>Status do curativo/lesão
+        <select data-field="status">
+          <option value=""></option>
+          <option value="clean">Curativo limpo, seco e íntegro</option>
+          <option value="dirty">Curativo com sujidade</option>
+          <option value="wet">Curativo úmido</option>
+          <option value="bleeding">Curativo com sangramento aparente</option>
+          <option value="secretion">Curativo com secreção aparente</option>
+          <option value="performed">Curativo realizado no plantão</option>
+        </select>
+      </label>
+      <label>Local
+        <select data-field="location">
+          ${buildOptions([["", ""], ...woundLocations], data.location || "")}
+        </select>
+      </label>
+      <label class="full conditional wound-other-location">Outro local
+        <input data-field="locationOther" placeholder="Descreva o local do curativo" />
+      </label>
+      <label class="full">Sinais ao redor/aspecto da lesão
+        <input data-field="signs" placeholder="Ex.: sem hiperemia, bordas íntegras, sem sinais flogísticos" />
+      </label>
+      <div class="full conditional wound-performed">
+        <div class="wound-entry-grid">
+          <label>Cobertura anterior
+            <select data-field="previousCover">
+              <option value=""></option>
+              <option value="yes">Sim</option>
+              <option value="no">Não</option>
+            </select>
+          </label>
+          <label class="conditional wound-previous-covered">Tipo de exsudato
+            <select data-field="exudateType">
+              <option value=""></option>
+              <option value="seroso">Seroso</option>
+              <option value="serossanguinolento">Serossanguinolento</option>
+              <option value="sanguinolento">Sanguinolento</option>
+              <option value="purulento">Purulento</option>
+              <option value="seropurulento">Seropurulento</option>
+              <option value="fibrinoso">Fibrinoso</option>
+            </select>
+          </label>
+          <label class="conditional wound-previous-covered">Quantidade
+            <select data-field="exudateAmount">
+              <option value=""></option>
+              <option value="pequena">Pequena</option>
+              <option value="moderada">Moderada</option>
+              <option value="grande">Grande</option>
+            </select>
+          </label>
+          <label class="conditional wound-previous-covered">Odor
+            <select data-field="odor">
+              <option value=""></option>
+              <option value="yes">Sim</option>
+              <option value="no">Não</option>
+            </select>
+          </label>
+          <label>Leito da ferida
+            <select data-field="bed">
+              <option value=""></option>
+              <option value="avermelhado">Avermelhado</option>
+              <option value="rosado">Rosado</option>
+              <option value="amarelo">Amarelo</option>
+              <option value="enegrecido">Enegrecido</option>
+            </select>
+          </label>
+          <label>Limpeza do leito da ferida
+            <select data-field="cleaning">
+              ${buildOptions(cleaningOptions, data.cleaning || "")}
+            </select>
+          </label>
+          <label class="conditional wound-cleaning-other">Outra limpeza
+            <input data-field="cleaningOther" placeholder="Descreva a limpeza do leito" />
+          </label>
+          <label>Limpeza da pele perilesional
+            <select data-field="perilesionalCleaning">
+              ${buildOptions(perilesionalOptions, data.perilesionalCleaning || "")}
+            </select>
+          </label>
+          <label class="conditional wound-perilesional-other">Outro cuidado perilesional
+            <input data-field="perilesionalOther" placeholder="Descreva o cuidado perilesional" />
+          </label>
+          <label>Cobertura primária 1
+            <select data-field="primaryCover1">
+              ${buildOptions(primaryOptions, data.primaryCover1 || "")}
+            </select>
+          </label>
+          <label>Cobertura primária 2
+            <select data-field="primaryCover2">
+              ${buildOptions(primaryOptions, data.primaryCover2 || "")}
+            </select>
+          </label>
+          <label class="conditional wound-primary1-other">Outra cobertura primária 1
+            <input data-field="primaryCover1Other" placeholder="Descreva a cobertura" />
+          </label>
+          <label class="conditional wound-primary2-other">Outra cobertura primária 2
+            <input data-field="primaryCover2Other" placeholder="Descreva a cobertura" />
+          </label>
+          <label>Cobertura secundária
+            <select data-field="secondaryCover">
+              ${buildOptions(primaryOptions, data.secondaryCover || "")}
+            </select>
+          </label>
+          <label class="conditional wound-secondary-other">Outra cobertura secundária
+            <input data-field="secondaryCoverOther" placeholder="Descreva a cobertura secundária" />
+          </label>
+          <label>Oclusão/fixação
+            <select data-field="occlusion">
+              ${buildOptions(occlusionOptions, data.occlusion || "")}
+            </select>
+          </label>
+          <label class="conditional wound-occlusion-other">Outra oclusão/fixação
+            <input data-field="occlusionOther" placeholder="Descreva a oclusão/fixação" />
+          </label>
+        </div>
+      </div>
+    </div>
+  `;
+
+  Object.entries(data).forEach(([name, fieldValue]) => {
+    const field = woundField(entry, name);
+    if (field) field.value = fieldValue;
+  });
+
+  entry.querySelector(".btn-remove-wound").addEventListener("click", () => {
+    entry.remove();
+    refreshWoundEntryTitles();
+    toggleConditionals();
+    generateEvolution();
+  });
+
+  bindAutoUpdate(entry);
+  $("woundEntries").appendChild(entry);
+  return entry;
+}
+
+function refreshWoundEntryTitles() {
+  woundEntries().forEach((entry, index) => {
+    const title = entry.querySelector(".wound-entry-title");
+    if (title) title.textContent = `Curativo ${index + 1}`;
+    const removeButton = entry.querySelector(".btn-remove-wound");
+    if (removeButton) removeButton.hidden = woundEntries().length === 1;
+  });
+}
+
+function collectWounds() {
+  return woundEntries().map((entry) => {
+    const data = {};
+    entry.querySelectorAll("[data-field]").forEach((field) => {
+      data[field.dataset.field] = field.value;
+    });
+    return data;
+  }).filter((item) => Object.values(item).some(has));
+}
+
+function fillWounds(items = []) {
+  $("woundEntries").innerHTML = "";
+  const source = items.length ? items : [{}];
+  source.forEach((item) => makeWoundEntry(item));
+  refreshWoundEntryTitles();
+  toggleConditionals();
+}
+
+function resolveWoundLocation(entry) {
+  const selected = woundValue(entry, "location");
+  if (selected === "other") return woundValue(entry, "locationOther") || "local não especificado";
+  return woundLocationMap[selected] || "local não especificado";
+}
+
+function resolvedWoundOption(entry, fieldName, otherFieldName) {
+  const selected = woundValue(entry, fieldName);
+  if (selected === "other") return woundValue(entry, otherFieldName);
+  return selected;
+}
+
+function toggleWoundConditionals() {
+  woundEntries().forEach((entry) => {
+    const status = woundValue(entry, "status");
+    const previousCover = woundValue(entry, "previousCover");
+    const location = woundValue(entry, "location");
+    const cleaning = woundValue(entry, "cleaning");
+    const perilesional = woundValue(entry, "perilesionalCleaning");
+    const primary1 = woundValue(entry, "primaryCover1");
+    const primary2 = woundValue(entry, "primaryCover2");
+    const secondary = woundValue(entry, "secondaryCover");
+    const occlusion = woundValue(entry, "occlusion");
+
+    entry.querySelectorAll(".wound-performed").forEach((el) => el.classList.toggle("is-hidden", status !== "performed"));
+    entry.querySelectorAll(".wound-previous-covered").forEach((el) => el.classList.toggle("is-hidden", !(status === "performed" && previousCover === "yes")));
+    entry.querySelectorAll(".wound-other-location").forEach((el) => el.classList.toggle("is-hidden", location !== "other"));
+    entry.querySelectorAll(".wound-cleaning-other").forEach((el) => el.classList.toggle("is-hidden", !(status === "performed" && cleaning === "other")));
+    entry.querySelectorAll(".wound-perilesional-other").forEach((el) => el.classList.toggle("is-hidden", !(status === "performed" && perilesional === "other")));
+    entry.querySelectorAll(".wound-primary1-other").forEach((el) => el.classList.toggle("is-hidden", !(status === "performed" && primary1 === "other")));
+    entry.querySelectorAll(".wound-primary2-other").forEach((el) => el.classList.toggle("is-hidden", !(status === "performed" && primary2 === "other")));
+    entry.querySelectorAll(".wound-secondary-other").forEach((el) => el.classList.toggle("is-hidden", !(status === "performed" && secondary === "other")));
+    entry.querySelectorAll(".wound-occlusion-other").forEach((el) => el.classList.toggle("is-hidden", !(status === "performed" && occlusion === "other")));
+  });
 }
 
 function parseDateValue(text) {
@@ -314,31 +622,92 @@ function getDrainSentence() {
 }
 
 function getWoundSentence() {
-  const status = value("woundStatus");
-  if (!has(status)) return "";
-  const loc = value("woundLocation") || "região não especificada";
-  const signs = value("woundSigns");
+  const bedMap = {
+    avermelhado: "Lesão com leito avermelhado, viável, com aspecto de tecido de granulação, sem áreas de necrose aparente, sem sangramento ativo no momento.",
+    rosado: "Lesão com leito rosado, aspecto viável, discretamente úmido, sem presença aparente de necrose, fibrina ou sangramento ativo no momento.",
+    amarelo: "Lesão com leito parcialmente amarelado, com presença de fibrina/esfacelo, sem sangramento ativo no momento.",
+    enegrecido: "Lesão com leito enegrecido, sugestivo de tecido desvitalizado/necrose, sem sangramento ativo no momento."
+  };
+  const cleaningMap = {
+    sf_0_9: "Realizada limpeza do leito da ferida com SF 0,9%",
+    phmb: "Realizada limpeza do leito da ferida com solução de PHMB"
+  };
+  const perilesionalMap = {
+    clorexidina: "antissepsia da pele perilesional com clorexidina"
+  };
+  const occlusionMap = {
+    micropore: "micropore",
+    filme_transparente: "filme transparente"
+  };
 
-  if (status === "none") return "Não apresenta curativo em regiões avaliadas no momento da visita. Pele observada sem cobertura externa.";
-  if (status === "clean") return `Curativo em região de ${loc}, com cobertura externa limpa, seca e íntegra, sem sinais de sangramento, secreção ou sujidade aparente${signs ? `, ${signs}` : ""}.`;
-  if (status === "dirty") return `Curativo em região de ${loc}, com cobertura externa apresentando sujidade, sem sangramento ativo aparente${signs ? `, ${signs}` : ""}. Equipe de enfermagem comunicada para avaliação da cobertura e realização de troca conforme necessidade/rotina do setor.`;
-  if (status === "wet") return `Curativo em região de ${loc}, com cobertura externa úmida${signs ? `, ${signs}` : ""}. Equipe de enfermagem comunicada para avaliação e troca conforme necessidade/rotina do setor.`;
-  if (status === "bleeding") return `Curativo em região de ${loc}, com presença de sangramento aparente em cobertura externa${signs ? `, ${signs}` : ""}. Equipe responsável comunicada e paciente mantido(a) em observação.`;
-  if (status === "secretion") return `Curativo em região de ${loc}, com presença de secreção aparente em cobertura externa${signs ? `, ${signs}` : ""}. Equipe responsável comunicada para avaliação e conduta.`;
+  const items = collectWounds();
 
-  if (status === "performed") {
-    const cleaning = value("woundCleaning") || "SF 0,9%";
-    const primary = value("primaryCover");
-    const secondary = value("secondaryCover");
-    const occlusion = value("occlusion");
-    const steps = [];
-    steps.push(`limpeza com ${cleaning}`);
-    if (primary) steps.push(`cobertura primária ${primary}`);
-    if (secondary) steps.push(`cobertura secundária ${secondary}`);
-    if (occlusion) steps.push(`oclusão/fixação com ${occlusion}`);
-    return `Realizado curativo em região de ${loc}, ${steps.join(", ")}${signs ? `, ${signs}` : ""}. Paciente tolerou procedimento sem intercorrências aparentes.`;
-  }
-  return "";
+  const parts = items.map((item) => {
+    const entry = {
+      querySelector: (selector) => {
+        const match = /\[data-field="(.+)"\]/.exec(selector);
+        return match ? { value: item[match[1]] || "" } : null;
+      }
+    };
+    const status = woundValue(entry, "status");
+    if (!has(status)) return "";
+    const loc = resolveWoundLocation(entry);
+    const signs = woundValue(entry, "signs");
+
+    if (status === "clean") return `Curativo em região de ${loc}, com cobertura externa limpa, seca e íntegra, sem sinais de sangramento, secreção ou sujidade aparente${signs ? `, ${signs}` : ""}.`;
+    if (status === "dirty") return `Curativo em região de ${loc}, com cobertura externa apresentando sujidade, sem sangramento ativo aparente${signs ? `, ${signs}` : ""}. Equipe de enfermagem comunicada para avaliação da cobertura e realização de troca conforme necessidade/rotina do setor.`;
+    if (status === "wet") return `Curativo em região de ${loc}, com cobertura externa úmida${signs ? `, ${signs}` : ""}. Equipe de enfermagem comunicada para avaliação e troca conforme necessidade/rotina do setor.`;
+    if (status === "bleeding") return `Curativo em região de ${loc}, com presença de sangramento aparente em cobertura externa${signs ? `, ${signs}` : ""}. Equipe responsável comunicada e paciente mantido(a) em observação.`;
+    if (status === "secretion") return `Curativo em região de ${loc}, com presença de secreção aparente em cobertura externa${signs ? `, ${signs}` : ""}. Equipe responsável comunicada para avaliação e conduta.`;
+
+    if (status === "performed") {
+      const previousCover = woundValue(entry, "previousCover");
+      const exudateType = woundValue(entry, "exudateType");
+      const exudateAmount = woundValue(entry, "exudateAmount");
+      const odor = woundValue(entry, "odor");
+      const bed = woundValue(entry, "bed");
+      const cleaning = resolvedWoundOption(entry, "cleaning", "cleaningOther");
+      const perilesional = resolvedWoundOption(entry, "perilesionalCleaning", "perilesionalOther");
+      const primaryCovers = [
+        resolvedWoundOption(entry, "primaryCover1", "primaryCover1Other"),
+        resolvedWoundOption(entry, "primaryCover2", "primaryCover2Other")
+      ].filter(has);
+      const secondary = resolvedWoundOption(entry, "secondaryCover", "secondaryCoverOther");
+      const occlusion = resolvedWoundOption(entry, "occlusion", "occlusionOther");
+      const fragments = [`Realizado curativo em região de ${loc}.`];
+
+      if (previousCover === "yes") {
+        fragments.push(`Ao retirar cobertura anterior, observado exsudato ${exudateType || "não especificado"} em ${exudateAmount || "não especificada"} quantidade, ${odor === "yes" ? "com" : "sem"} odor fétido.`);
+      } else if (previousCover === "no") {
+        fragments.push("Sem cobertura anterior no momento do procedimento.");
+      }
+
+      if (bedMap[bed]) fragments.push(bedMap[bed]);
+      if (signs) fragments.push(endWithPeriod(sentenceCase(signs)));
+
+      const careParts = [];
+      if (cleaningMap[cleaning]) careParts.push(cleaningMap[cleaning]);
+      else if (has(cleaning)) careParts.push(`Realizada limpeza do leito da ferida com ${cleaning}`);
+
+      if (perilesionalMap[perilesional]) careParts.push(perilesionalMap[perilesional]);
+      else if (has(perilesional)) careParts.push(perilesional);
+
+      if (careParts.length) fragments.push(`${sentenceCase(careParts.join(" e "))}.`);
+
+      const coverParts = [];
+      if (primaryCovers.length) coverParts.push(`Aplicada cobertura com ${primaryCovers.join(" e ")}`);
+      if (has(secondary)) coverParts.push(`${primaryCovers.length ? "cobertura secundária" : "Aplicada cobertura secundária"} com ${secondary}`);
+      if (has(occlusion)) coverParts.push(`${primaryCovers.length || has(secondary) ? "oclusão" : "Realizada oclusão"} com ${occlusionMap[occlusion] || occlusion}, mantendo curativo limpo, seco e bem fixado`);
+
+      if (coverParts.length) fragments.push(`${coverParts.join(" e ")}.`);
+      fragments.push("Paciente orientado e segue aos cuidados da equipe de enfermagem.");
+      return fragments.join(" ");
+    }
+
+    return "";
+  }).filter(has);
+
+  return parts.join(" ");
 }
 
 function getMobilitySentence() {
@@ -418,12 +787,19 @@ function getIdentificationSentence() {
 }
 
 function autoDiagnoses() {
-  const infection = value("accessType") && value("accessType") !== "none" || value("hasDrain") === "yes" || ["clean", "dirty", "wet", "bleeding", "secretion", "performed"].includes(value("woundStatus")) || ["sne", "sng", "gtt", "jjt", "npt", "npp"].includes(value("feedingRoute"));
-  const skin = ["Risco leve", "Risco moderado", "Risco alto", "Risco muito alto"].some((risk) => value("bradenClass").startsWith(risk)) || ["bedridden", "restrictedBed", "wheelchair", "wheelchairIndependent", "wheelchairDependent", "paraplegic", "tetraplegic", "reduced"].includes(value("mobility")) || value("woundStatus") && value("woundStatus") !== "none" || value("skin") === "risk" || value("skin") === "lesion";
+  const wounds = collectWounds();
+  const hasWound = wounds.length > 0;
+  const infection = value("accessType") && value("accessType") !== "none" || value("hasDrain") === "yes" || hasWound || ["sne", "sng", "gtt", "jjt", "npt", "npp"].includes(value("feedingRoute"));
+  const skin = ["Risco leve", "Risco moderado", "Risco alto", "Risco muito alto"].some((risk) => value("bradenClass").startsWith(risk)) || ["bedridden", "restrictedBed", "wheelchair", "wheelchairIndependent", "wheelchairDependent", "paraplegic", "tetraplegic", "reduced"].includes(value("mobility")) || hasWound || value("skin") === "risk" || value("skin") === "lesion";
   const falls = lower(value("morseClass")).includes("médio") || lower(value("morseClass")).includes("alto") || ["walkHelp", "walker", "crutch", "cane", "wheelchair", "wheelchairIndependent", "wheelchairDependent", "unstable", "fallRisk", "postOpLimited"].includes(value("mobility"));
   const pain = value("painStatus") === "yesRoutine" || value("painStatus") === "yesMedical" || ["alteredWithImmobilization", "alteredWithoutImmobilization", "tractionAltered"].includes(value("orthoType"));
   const perfusion = has(value("orthoType")) || ["postOpLimited", "limping"].includes(value("mobility"));
-  return { infection, skin, falls, pain, perfusion };
+  const tissue = hasWound || value("skin") === "lesion";
+  const mobility = isMobilityReduced();
+  const glycemia = inferDiabetesRisk();
+  const selfCare = ["wheelchairDependent", "bedridden", "restrictedBed", "reduced", "tetraplegic", "paraplegic", "postOpLimited", "noWalk"].includes(value("mobility"));
+  const pressure = likelyPressureRisk();
+  return { infection, skin, falls, pain, perfusion, tissue, mobility, glycemia, selfCare, pressure };
 }
 
 function diagnosisAllowed(id, autoValue) {
@@ -443,6 +819,11 @@ function getDiagnosesSection() {
     items.push(value("painStatus") === "yesRoutine" || value("painStatus") === "yesMedical" ? "Dor aguda." : "Risco de dor aguda.");
   }
   if (diagnosisAllowed("diagPerfusion", auto.perfusion)) items.push("Risco de alteração da perfusão periférica em membro acometido/imobilizado.");
+  if (diagnosisAllowed("diagTissue", auto.tissue)) items.push("Integridade tissular prejudicada.");
+  if (diagnosisAllowed("diagMobility", auto.mobility)) items.push("Mobilidade física prejudicada.");
+  if (diagnosisAllowed("diagGlycemia", auto.glycemia)) items.push("Risco de glicemia instável.");
+  if (diagnosisAllowed("diagSelfCare", auto.selfCare)) items.push("Déficit no autocuidado para higiene/conforto.");
+  if (diagnosisAllowed("diagPressure", auto.pressure)) items.push("Risco de lesão por pressão, relacionado à mobilidade reduzida e permanência prolongada em leito/cadeira de rodas.");
   if (!items.length) return "";
   return `Diagnósticos de enfermagem:\n${items.map((item) => `(x) ${item}`).join("\n")}`;
 }
@@ -459,11 +840,27 @@ function getConductsSection() {
     ["condSkin", "Realizar avaliação diária da pele"],
     ["condAccess", "Avaliar acesso/dispositivo quanto à permeabilidade, fixação e presença de sinais flogísticos"],
     ["condOrtho", "Observar membro acometido/imobilização/tração quanto à integridade, posicionamento, compressão, edema, dor, perfusão distal e alteração de sensibilidade"],
-    ["condObservation", "Manter paciente em observação conforme rotina do setor"]
+    ["condObservation", "Manter paciente em observação conforme rotina do setor"],
+    ["condHemodynamic", "Manter vigilância hemodinâmica"],
+    ["condPainReport", "Monitorar queixas álgicas e comunicar equipe médica se necessário"],
+    ["condRespiratory", "Observar padrão respiratório e sinais de desconforto respiratório"],
+    ["condHeadboard", "Manter cabeceira elevada, conforme tolerância"],
+    ["condDietAcceptance", "Observar aceitação da dieta"],
+    ["condGlycemia", "Monitorar glicemia capilar conforme rotina/prescrição"],
+    ["condStump", "Observar curativo em coto cirúrgico quanto à presença de sangramento, secreção, sujidade, odor, dor local ou sinais flogísticos"],
+    ["condAvp", "Manter AVP pérvio e observar sinais de flebite/infiltração"],
+    ["condPressurePrevention", "Manter medidas de prevenção de lesão por pressão conforme risco avaliado"],
+    ["condReposition", "Orientar mudança frequente de posição, alívio de pressão e inspeção da pele"],
+    ["condSkinCare", "Manter pele limpa, seca e hidratada, conforme necessidade"],
+    ["condFallsMorse", "Manter medidas de prevenção de quedas conforme risco pela Escala de Morse"],
+    ["condTransfers", "Orientar cuidado durante transferências, banho em cadeira higiênica e deslocamentos em cadeira de rodas"],
+    ["condSafeEnvironment", "Manter ambiente seguro, com pertences ao alcance e rodas da cadeira travadas durante transferências"],
+    ["condSvdDiuresis", "Monitorar diurese por SVD, aspecto, coloração e débito urinário"],
+    ["condSvdCare", "Manter cuidados com SVD e bolsa coletora abaixo do nível da bexiga"]
   ];
   const selected = map.filter(([id]) => checked(id)).map(([, text]) => text);
   if (!selected.length) return "";
-  return `Cuidados/Conduta de enfermagem:\n${selected.map((item) => `– ${item};`).join("\n")}`;
+  return `Cuidados/Conduta de enfermagem:\n${selected.map((item) => `• ${item};`).join("\n")}`;
 }
 
 function getPendingSection() {
@@ -480,9 +877,17 @@ function applyAutoConducts() {
   const shouldFalls = lower(value("morseClass")).includes("médio") || lower(value("morseClass")).includes("alto") || ["walkHelp", "walker", "crutch", "cane", "wheelchair", "wheelchairIndependent", "wheelchairDependent", "unstable", "fallRisk", "bedridden", "restrictedBed"].includes(value("mobility"));
   const shouldDiet = value("feedingRoute");
   const shouldElim = value("urine") || value("bowel");
-  const shouldSkin = value("skin") || value("woundStatus") || value("bradenClass");
+  const shouldSkin = value("skin") || collectWounds().length || value("bradenClass");
   const shouldAccess = value("accessType") && value("accessType") !== "none" || value("hasDrain") === "yes";
   const shouldOrtho = value("orthoType") || ["postOpLimited", "limping", "reduced"].includes(value("mobility"));
+  const shouldPressure = likelyPressureRisk();
+  const shouldGlycemia = inferDiabetesRisk();
+  const shouldResp = has(value("oxygenType")) || checked("dyspnea") || checked("tachypnea") || checked("tirage") || checked("cyanosis");
+  const shouldHeadboard = ["sne", "sng", "gtt", "jjt"].includes(value("feedingRoute")) || shouldResp;
+  const shouldTransfers = ["wheelchair", "wheelchairIndependent", "wheelchairDependent", "reduced", "postOpLimited", "noWalk"].includes(value("mobility"));
+  const shouldSvd = value("urine") === "svd";
+  const shouldAvp = value("accessType") === "avp";
+  const shouldStump = collectWounds().some((item) => lower(`${item.location || ""} ${item.locationOther || ""}`).includes("amput"));
 
   if (shouldPain) $("condPain").checked = true;
   if (shouldFalls) $("condFalls").checked = true;
@@ -492,6 +897,27 @@ function applyAutoConducts() {
   if (shouldAccess) $("condAccess").checked = true;
   if (shouldOrtho) $("condOrtho").checked = true;
   if (value("consciousness") && value("consciousness") !== "bom") $("condConsciousness").checked = true;
+  if (shouldPain) $("condPainReport").checked = true;
+  if (shouldResp) $("condRespiratory").checked = true;
+  if (shouldHeadboard) $("condHeadboard").checked = true;
+  if (shouldDiet) $("condDietAcceptance").checked = true;
+  if (shouldGlycemia) $("condGlycemia").checked = true;
+  if (shouldStump) $("condStump").checked = true;
+  if (shouldAvp) $("condAvp").checked = true;
+  if (shouldPressure) {
+    $("condPressurePrevention").checked = true;
+    $("condReposition").checked = true;
+    $("condSkinCare").checked = true;
+  }
+  if (shouldFalls) $("condFallsMorse").checked = true;
+  if (shouldTransfers) {
+    $("condTransfers").checked = true;
+    $("condSafeEnvironment").checked = true;
+  }
+  if (shouldSvd) {
+    $("condSvdDiuresis").checked = true;
+    $("condSvdCare").checked = true;
+  }
 }
 
 function generateEvolution() {
@@ -519,11 +945,11 @@ function generateEvolution() {
   const sections = [
     header,
     body,
+    "Segue aos cuidados da equipe multiprofissional.",
     getDiagnosesSection(),
     getConductsSection(),
     getPendingSection(),
-    "Segue aos cuidados da equipe multiprofissional.",
-    value("signature")
+    value("signature") || DEFAULT_SIGNATURE
   ].filter(has);
 
   const text = sections.join("\n\n").replace(/\n{3,}/g, "\n\n").trim();
@@ -537,6 +963,7 @@ function toggleConditionals() {
     const expectedValues = expected.split(",");
     el.classList.toggle("is-hidden", !expectedValues.includes(value(field)));
   });
+  toggleWoundConditionals();
 }
 
 function collectForm() {
@@ -547,6 +974,7 @@ function collectForm() {
     if (el.type === "checkbox") data[id] = el.checked;
     else data[id] = el.value;
   });
+  data[WOUND_STORAGE_KEY] = collectWounds();
   return data;
 }
 
@@ -557,6 +985,8 @@ function fillForm(data) {
     if (el.type === "checkbox") el.checked = Boolean(data[id]);
     else el.value = data[id];
   });
+  fillWounds(data[WOUND_STORAGE_KEY] || []);
+  if (!has(value("signature"))) $("signature").value = DEFAULT_SIGNATURE;
   toggleConditionals();
   generateEvolution();
 }
@@ -585,6 +1015,8 @@ function clearForm() {
     if (el.type === "checkbox") el.checked = ["condVitals", "condComfort", "condObservation"].includes(id);
     else el.value = "";
   });
+  fillWounds([]);
+  $("signature").value = DEFAULT_SIGNATURE;
   toggleConditionals();
   generateEvolution();
 }
@@ -608,6 +1040,7 @@ function applyDefaultPatient() {
     skin: "intact",
     bedPlate: value("bedPlate") || "yes",
     wristband: value("wristband") || "yes",
+    signature: value("signature") || DEFAULT_SIGNATURE,
     condVitals: true,
     condComfort: true,
     condObservation: true,
@@ -644,16 +1077,7 @@ function downloadTxt() {
 }
 
 function init() {
-  document.querySelectorAll("input, select, textarea").forEach((el) => {
-    el.addEventListener("input", () => {
-      toggleConditionals();
-      generateEvolution();
-    });
-    el.addEventListener("change", () => {
-      toggleConditionals();
-      generateEvolution();
-    });
-  });
+  bindAutoUpdate(document);
 
   $("btnDefault").addEventListener("click", applyDefaultPatient);
   $("btnClear").addEventListener("click", clearForm);
@@ -661,7 +1085,15 @@ function init() {
   $("btnSave").addEventListener("click", saveDraft);
   $("btnLoad").addEventListener("click", loadDraft);
   $("btnTxt").addEventListener("click", downloadTxt);
+  $("btnAddWound").addEventListener("click", () => {
+    makeWoundEntry({});
+    refreshWoundEntryTitles();
+    toggleConditionals();
+    generateEvolution();
+  });
 
+  fillWounds([]);
+  if (!has(value("signature"))) $("signature").value = DEFAULT_SIGNATURE;
   toggleConditionals();
   generateEvolution();
 }

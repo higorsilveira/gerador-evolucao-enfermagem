@@ -335,37 +335,12 @@
 
         <details>
           <summary>6. Curativos, lesões e feridas operatórias</summary>
-          <div class="grid two">
-            <label>Presença de curativo/lesão
-              <select id="woundStatus">
-                <option value=""></option>
-                <option value="none">Não apresenta curativo/lesão aparente nas áreas avaliadas</option>
-                <option value="clean">Curativo limpo, seco e íntegro</option>
-                <option value="dirty">Curativo com sujidade</option>
-                <option value="wet">Curativo úmido</option>
-                <option value="bleeding">Curativo com sangramento aparente</option>
-                <option value="secretion">Curativo com secreção aparente</option>
-                <option value="performed">Curativo realizado no plantão</option>
-              </select>
-            </label>
-            <label>Local
-              <input id="woundLocation" placeholder="Ex.: joelho D, sacral, tornozelo E" />
-            </label>
-            <label class="full">Sinais ao redor/aspecto da lesão
-              <input id="woundSigns" placeholder="Ex.: sem hiperemia, sem odor fétido, bordas íntegras" />
-            </label>
-            <label>Limpeza
-              <input id="woundCleaning" placeholder="Ex.: SF 0,9%" />
-            </label>
-            <label>Cobertura primária
-              <input id="primaryCover" placeholder="Ex.: Aquacel" />
-            </label>
-            <label>Cobertura secundária
-              <input id="secondaryCover" placeholder="Ex.: compressa estéril" />
-            </label>
-            <label>Oclusão/fixação
-              <input id="occlusion" placeholder="Ex.: filme transparente" />
-            </label>
+          <div class="grid">
+            <div class="section-actions">
+              <p class="hint">Adicione um ou mais curativos. Os campos detalhados aparecem apenas quando a opção for <strong>Curativo realizado no plantão</strong>.</p>
+              <button type="button" class="secondary" id="btnAddWound">Adicionar curativo</button>
+            </div>
+            <div id="woundEntries" class="wound-list"></div>
           </div>
         </details>
 
@@ -481,9 +456,24 @@
             <label>Risco de alteração da perfusão periférica
               <select id="diagPerfusion"><option value="auto">Automático</option><option value="yes">Sim</option><option value="no">Não</option></select>
             </label>
+            <label>Integridade tissular prejudicada
+              <select id="diagTissue"><option value="auto">Automático</option><option value="yes">Sim</option><option value="no">Não</option></select>
+            </label>
+            <label>Mobilidade física prejudicada
+              <select id="diagMobility"><option value="auto">Automático</option><option value="yes">Sim</option><option value="no">Não</option></select>
+            </label>
+            <label>Risco de glicemia instável
+              <select id="diagGlycemia"><option value="auto">Automático</option><option value="yes">Sim</option><option value="no">Não</option></select>
+            </label>
+            <label>Déficit no autocuidado para higiene/conforto
+              <select id="diagSelfCare"><option value="auto">Automático</option><option value="yes">Sim</option><option value="no">Não</option></select>
+            </label>
+            <label>Risco de lesão por pressão
+              <select id="diagPressure"><option value="auto">Automático</option><option value="yes">Sim</option><option value="no">Não</option></select>
+            </label>
           </div>
 
-          <fieldset class="checkbox-group">
+          <fieldset class="checkbox-group checkbox-list">
             <legend>Condutas rápidas</legend>
             <label><input type="checkbox" id="condVitals" checked /> Monitorar sinais vitais conforme rotina</label>
             <label><input type="checkbox" id="condConsciousness" /> Monitorar nível de consciência</label>
@@ -496,6 +486,22 @@
             <label><input type="checkbox" id="condAccess" /> Avaliar acesso/dispositivo quanto à permeabilidade e sinais flogísticos</label>
             <label><input type="checkbox" id="condOrtho" /> Observar membro/imobilização/tração quanto à perfusão, dor, edema e sensibilidade</label>
             <label><input type="checkbox" id="condObservation" checked /> Manter paciente em observação conforme rotina do setor</label>
+            <label><input type="checkbox" id="condHemodynamic" /> Manter vigilância hemodinâmica</label>
+            <label><input type="checkbox" id="condPainReport" /> Monitorar queixas álgicas e comunicar equipe médica se necessário</label>
+            <label><input type="checkbox" id="condRespiratory" /> Observar padrão respiratório e sinais de desconforto respiratório</label>
+            <label><input type="checkbox" id="condHeadboard" /> Manter cabeceira elevada, conforme tolerância</label>
+            <label><input type="checkbox" id="condDietAcceptance" /> Observar aceitação da dieta</label>
+            <label><input type="checkbox" id="condGlycemia" /> Monitorar glicemia capilar conforme rotina/prescrição</label>
+            <label><input type="checkbox" id="condStump" /> Observar curativo em coto cirúrgico quanto à presença de sangramento, secreção, sujidade, odor, dor local ou sinais flogísticos</label>
+            <label><input type="checkbox" id="condAvp" /> Manter AVP pérvio e observar sinais de flebite/infiltração</label>
+            <label><input type="checkbox" id="condPressurePrevention" /> Manter medidas de prevenção de lesão por pressão conforme risco avaliado</label>
+            <label><input type="checkbox" id="condReposition" /> Orientar mudança frequente de posição, alívio de pressão e inspeção da pele</label>
+            <label><input type="checkbox" id="condSkinCare" /> Manter pele limpa, seca e hidratada, conforme necessidade</label>
+            <label><input type="checkbox" id="condFallsMorse" /> Manter medidas de prevenção de quedas conforme risco pela Escala de Morse</label>
+            <label><input type="checkbox" id="condTransfers" /> Orientar cuidado durante transferências, banho em cadeira higiênica e deslocamentos em cadeira de rodas</label>
+            <label><input type="checkbox" id="condSafeEnvironment" /> Manter ambiente seguro, com pertences ao alcance e rodas da cadeira travadas durante transferências</label>
+            <label><input type="checkbox" id="condSvdDiuresis" /> Monitorar diurese por SVD, aspecto, coloração e débito urinário</label>
+            <label><input type="checkbox" id="condSvdCare" /> Manter cuidados com SVD e bolsa coletora abaixo do nível da bexiga</label>
           </fieldset>
 
           <div class="grid two top-space">
@@ -512,7 +518,8 @@
               <textarea id="pendingNotes" rows="2" placeholder="Ex.: aguarda cirurgia; equipe ciente"></textarea>
             </label>
             <label class="full">Assinatura
-              <input id="signature" placeholder="Ex.: Enf.ª Núbia Altina... COREN-DF..." />
+              <textarea id="signature" rows="2" placeholder="Ex.: Enf.ª Núbia Altina... COREN-DF...">Enf.ª Núbia Altina de Carvalho da Silveira
+COREN-DF 635.011</textarea>
             </label>
           </div>
         </details>

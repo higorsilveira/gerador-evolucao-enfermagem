@@ -211,9 +211,77 @@ legend {
 
 .checkbox-group label {
   flex-direction: row;
-  align-items: center;
+  align-items: flex-start;
+  gap: 10px;
   font-weight: 600;
   color: var(--text);
+}
+
+.checkbox-group input[type="checkbox"] {
+  width: auto;
+  margin-top: 2px;
+  flex: 0 0 auto;
+}
+
+.checkbox-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 16px;
+}
+
+.checkbox-list label {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fbfffe;
+  line-height: 1.35;
+}
+
+.section-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.section-actions .hint {
+  margin: 0;
+}
+
+.wound-list {
+  display: grid;
+  gap: 16px;
+}
+
+.wound-entry {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  background: #fbfffe;
+}
+
+.wound-entry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.wound-entry-title {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--primary-dark);
+}
+
+.wound-entry-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.wound-entry .full {
+  grid-column: 1 / -1;
 }
 
 input,
@@ -336,7 +404,9 @@ button.ghost:hover {
   }
 
   .grid.two,
-  .diagnosis-grid {
+  .diagnosis-grid,
+  .checkbox-list,
+  .wound-entry-grid {
     grid-template-columns: 1fr;
   }
 
