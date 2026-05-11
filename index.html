@@ -74,27 +74,33 @@
             <label class="full">História da admissão <span class="hint">opcional</span>
               <textarea id="admissionHistory" rows="2" placeholder="Ex.: Paciente vítima de queda..."></textarea>
             </label>
-            <label>Braden — classificação
-              <select id="bradenClass">
-                <option value=""></option>
-                <option>Sem risco para lesão por pressão</option>
-                <option>Risco leve para lesão por pressão</option>
-                <option>Risco moderado para lesão por pressão</option>
-                <option>Risco alto para lesão por pressão</option>
-                <option>Risco muito alto para lesão por pressão</option>
-              </select>
-            </label>
+            <div class="scale-field">
+              <label>Braden — classificação
+                <select id="bradenClass">
+                  <option value=""></option>
+                  <option>Sem risco para lesão por pressão</option>
+                  <option>Risco leve para lesão por pressão</option>
+                  <option>Risco moderado para lesão por pressão</option>
+                  <option>Risco alto para lesão por pressão</option>
+                  <option>Risco muito alto para lesão por pressão</option>
+                </select>
+              </label>
+              <button type="button" class="secondary scale-button" id="btnCalcBraden">Calcular</button>
+            </div>
             <label>Braden — pontos
               <input id="bradenPoints" inputmode="numeric" placeholder="Ex.: 20" />
             </label>
-            <label>Morse — classificação
-              <select id="morseClass">
-                <option value=""></option>
-                <option>Baixo risco para queda</option>
-                <option>Médio risco para queda</option>
-                <option>Alto risco para queda</option>
-              </select>
-            </label>
+            <div class="scale-field">
+              <label>Morse — classificação
+                <select id="morseClass">
+                  <option value=""></option>
+                  <option>Baixo risco para queda</option>
+                  <option>Médio risco para queda</option>
+                  <option>Alto risco para queda</option>
+                </select>
+              </label>
+              <button type="button" class="secondary scale-button" id="btnCalcMorse">Calcular</button>
+            </div>
             <label>Morse — pontos
               <input id="morsePoints" inputmode="numeric" placeholder="Ex.: 35" />
             </label>
@@ -549,6 +555,151 @@ COREN-DF 635.011</textarea>
     <footer class="app-footer">
       <p>Uso assistivo para agilizar registro. Revise a evolução antes de colar no prontuário.</p>
     </footer>
+
+    <dialog id="bradenDialog" class="scale-dialog">
+      <form method="dialog" class="scale-dialog-form">
+        <div class="scale-dialog-header">
+          <div>
+            <p class="eyebrow">Escala</p>
+            <h2>Calcular Braden</h2>
+          </div>
+          <button type="button" class="ghost" id="btnCloseBraden">Fechar</button>
+        </div>
+        <div class="scale-dialog-body">
+          <div class="scale-grid">
+            <label>Percepção sensorial
+              <select id="bradenSensory" class="scale-input">
+                <option value=""></option>
+                <option value="1">Totalmente limitado</option>
+                <option value="2">Muito limitado</option>
+                <option value="3">Levemente limitado</option>
+                <option value="4">Nenhuma limitação</option>
+              </select>
+            </label>
+            <label>Umidade
+              <select id="bradenMoisture" class="scale-input">
+                <option value=""></option>
+                <option value="1">Completamente molhado</option>
+                <option value="2">Muito molhado</option>
+                <option value="3">Ocasionalmente molhado</option>
+                <option value="4">Raramente molhado</option>
+              </select>
+            </label>
+            <label>Atividade
+              <select id="bradenActivity" class="scale-input">
+                <option value=""></option>
+                <option value="1">Acamado</option>
+                <option value="2">Confinado à cadeira</option>
+                <option value="3">Anda ocasionalmente</option>
+                <option value="4">Anda frequentemente</option>
+              </select>
+            </label>
+            <label>Mobilidade
+              <select id="bradenMobilityCalc" class="scale-input">
+                <option value=""></option>
+                <option value="1">Totalmente imóvel</option>
+                <option value="2">Bastante limitado</option>
+                <option value="3">Levemente limitado</option>
+                <option value="4">Não apresenta limitações</option>
+              </select>
+            </label>
+            <label>Nutrição
+              <select id="bradenNutrition" class="scale-input">
+                <option value=""></option>
+                <option value="1">Muito pobre</option>
+                <option value="2">Provavelmente inadequada</option>
+                <option value="3">Adequada</option>
+                <option value="4">Excelente</option>
+              </select>
+            </label>
+            <label>Fricção e cisalhamento
+              <select id="bradenFriction" class="scale-input">
+                <option value=""></option>
+                <option value="1">Problema</option>
+                <option value="2">Problema potencial</option>
+                <option value="3">Nenhum problema</option>
+              </select>
+            </label>
+          </div>
+          <div class="scale-result">
+            <div><strong>Pontuação total:</strong> <span id="bradenCalcPoints">—</span></div>
+            <div><strong>Classificação:</strong> <span id="bradenCalcClass">Preencher todos os itens</span></div>
+          </div>
+        </div>
+        <div class="scale-dialog-actions">
+          <button type="button" class="secondary" id="btnResetBraden">Limpar</button>
+          <button type="button" id="btnApplyBraden">Aplicar ao formulário</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="morseDialog" class="scale-dialog">
+      <form method="dialog" class="scale-dialog-form">
+        <div class="scale-dialog-header">
+          <div>
+            <p class="eyebrow">Escala</p>
+            <h2>Calcular Morse</h2>
+          </div>
+          <button type="button" class="ghost" id="btnCloseMorse">Fechar</button>
+        </div>
+        <div class="scale-dialog-body">
+          <div class="scale-grid">
+            <label>Histórico de quedas
+              <select id="morseHistory" class="scale-input">
+                <option value=""></option>
+                <option value="0">Não</option>
+                <option value="25">Sim, queda nos últimos 3 meses ou durante a internação</option>
+              </select>
+            </label>
+            <label>Diagnóstico secundário
+              <select id="morseSecondaryDiagnosis" class="scale-input">
+                <option value=""></option>
+                <option value="0">Não possui / apenas um diagnóstico</option>
+                <option value="15">Possui mais de um diagnóstico</option>
+              </select>
+            </label>
+            <label>Auxílio na deambulação
+              <select id="morseAmbulationAid" class="scale-input">
+                <option value=""></option>
+                <option value="0">Nenhum / acamado / cadeira de rodas / auxílio da equipe</option>
+                <option value="15">Muleta / bengala / andador</option>
+                <option value="30">Apoia-se em móveis ou paredes</option>
+              </select>
+            </label>
+            <label>Terapia endovenosa / acesso venoso
+              <select id="morseIvAccess" class="scale-input">
+                <option value=""></option>
+                <option value="0">Não possui</option>
+                <option value="20">Possui AVP, acesso venoso, dispositivo salinizado ou infusão</option>
+              </select>
+            </label>
+            <label>Marcha
+              <select id="morseGait" class="scale-input">
+                <option value=""></option>
+                <option value="0">Normal / acamado / cadeira de rodas / não deambula</option>
+                <option value="10">Marcha fraca</option>
+                <option value="20">Marcha comprometida / cambaleante</option>
+              </select>
+            </label>
+            <label>Estado mental
+              <select id="morseMentalStatus" class="scale-input">
+                <option value=""></option>
+                <option value="0">Orientado quanto à própria capacidade</option>
+                <option value="15">Superestima capacidade ou esquece limitações</option>
+              </select>
+            </label>
+          </div>
+          <div class="scale-result">
+            <div><strong>Pontuação total:</strong> <span id="morseCalcPoints">—</span></div>
+            <div><strong>Classificação:</strong> <span id="morseCalcClass">Preencher todos os itens</span></div>
+          </div>
+        </div>
+        <div class="scale-dialog-actions">
+          <button type="button" class="secondary" id="btnResetMorse">Limpar</button>
+          <button type="button" id="btnApplyMorse">Aplicar ao formulário</button>
+        </div>
+      </form>
+    </dialog>
 
     <script src="app.js"></script>
   </body>

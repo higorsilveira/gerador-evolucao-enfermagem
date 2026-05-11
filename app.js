@@ -55,6 +55,11 @@ function buildOptions(options, selected = "") {
   return options.map(([valueText, label]) => `<option value="${escapeHtml(valueText)}"${valueText === selected ? " selected" : ""}>${escapeHtml(label)}</option>`).join("");
 }
 
+function numericValue(id) {
+  const raw = value(id);
+  return raw === "" ? null : Number(raw);
+}
+
 function line(text) {
   return has(text) ? text.trim() : "";
 }
@@ -317,6 +322,54 @@ function toggleWoundConditionals() {
     entry.querySelectorAll(".wound-secondary-other").forEach((el) => el.classList.toggle("is-hidden", !(status === "performed" && secondary === "other")));
     entry.querySelectorAll(".wound-occlusion-other").forEach((el) => el.classList.toggle("is-hidden", !(status === "performed" && occlusion === "other")));
   });
+}
+
+function getBradenCalculation() {
+  const ids = ["bradenSensory", "bradenMoisture", "bradenActivity", "bradenMobilityCalc", "bradenNutrition", "bradenFriction"];
+  const values = ids.map(numericValue);
+  if (values.some((item) => item === null || Number.isNaN(item))) {
+    return { complete: false, points: "", classification: "Preencher todos os itens" };
+  }
+  const total = values.reduce((sum, item) => sum + item, 0);
+  let classification = "Sem risco para lesão por pressão";
+  if (total <= 9) classification = "Risco muito alto para lesão por pressão";
+  else if (total <= 12) classification = "Risco alto para lesão por pressão";
+  else if (total <= 14) classification = "Risco moderado para lesão por pressão";
+  else if (total <= 18) classification = "Risco leve para lesão por pressão";
+  return { complete: true, points: String(total), classification };
+}
+
+function getMorseCalculation() {
+  const ids = ["morseHistory", "morseSecondaryDiagnosis", "morseAmbulationAid", "morseIvAccess", "morseGait", "morseMentalStatus"];
+  const values = ids.map(numericValue);
+  if (values.some((item) => item === null || Number.isNaN(item))) {
+    return { complete: false, points: "", classification: "Preencher todos os itens" };
+  }
+  const total = values.reduce((sum, item) => sum + item, 0);
+  let classification = "Baixo risco para queda";
+  if (total >= 45) classification = "Alto risco para queda";
+  else if (total >= 25) classification = "Médio risco para queda";
+  return { complete: true, points: String(total), classification };
+}
+
+function syncBradenSummary() {
+  const result = getBradenCalculation();
+  $("bradenCalcPoints").textContent = result.points || "—";
+  $("bradenCalcClass").textContent = result.classification;
+}
+
+function syncMorseSummary() {
+  const result = getMorseCalculation();
+  $("morseCalcPoints").textContent = result.points || "—";
+  $("morseCalcClass").textContent = result.classification;
+}
+
+function resetScaleFields(ids, syncFn) {
+  ids.forEach((id) => {
+    const el = $(id);
+    if (el) el.value = "";
+  });
+  syncFn();
 }
 
 function parseDateValue(text) {
@@ -1084,9 +1137,47 @@ function init() {
     toggleConditionals();
     generateEvolution();
   });
+  $("btnCalcBraden").addEventListener("click", () => {
+    syncBradenSummary();
+    $("bradenDialog").showModal();
+  });
+  $("btnCalcMorse").addEventListener("click", () => {
+    syncMorseSummary();
+    $("morseDialog").showModal();
+  });
+  $("btnCloseBraden").addEventListener("click", () => $("bradenDialog").close());
+  $("btnCloseMorse").addEventListener("click", () => $("morseDialog").close());
+  $("btnResetBraden").addEventListener("click", () => resetScaleFields(["bradenSensory", "bradenMoisture", "bradenActivity", "bradenMobilityCalc", "bradenNutrition", "bradenFriction"], syncBradenSummary));
+  $("btnResetMorse").addEventListener("click", () => resetScaleFields(["morseHistory", "morseSecondaryDiagnosis", "morseAmbulationAid", "morseIvAccess", "morseGait", "morseMentalStatus"], syncMorseSummary));
+  $("btnApplyBraden").addEventListener("click", () => {
+    const result = getBradenCalculation();
+    if (!result.complete) return;
+    $("bradenPoints").value = result.points;
+    $("bradenClass").value = result.classification;
+    $("bradenDialog").close();
+    toggleConditionals();
+    generateEvolution();
+  });
+  $("btnApplyMorse").addEventListener("click", () => {
+    const result = getMorseCalculation();
+    if (!result.complete) return;
+    $("morsePoints").value = result.points;
+    $("morseClass").value = result.classification;
+    $("morseDialog").close();
+    toggleConditionals();
+    generateEvolution();
+  });
+  ["bradenSensory", "bradenMoisture", "bradenActivity", "bradenMobilityCalc", "bradenNutrition", "bradenFriction"].forEach((id) => {
+    $(id).addEventListener("change", syncBradenSummary);
+  });
+  ["morseHistory", "morseSecondaryDiagnosis", "morseAmbulationAid", "morseIvAccess", "morseGait", "morseMentalStatus"].forEach((id) => {
+    $(id).addEventListener("change", syncMorseSummary);
+  });
 
   fillWounds([]);
   if (!has(value("signature"))) $("signature").value = DEFAULT_SIGNATURE;
+  syncBradenSummary();
+  syncMorseSummary();
   toggleConditionals();
   generateEvolution();
 }
