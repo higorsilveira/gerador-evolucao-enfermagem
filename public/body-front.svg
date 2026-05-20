@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 460" role="img" aria-labelledby="title desc">
+  <title id="title">Silhueta corporal unissex em vista frontal</title>
+  <desc id="desc">Imagem simetrica do corpo humano em vista frontal para marcacao de pontos de curativo.</desc>
+  <defs>
+    <linearGradient id="fillFront" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#d7d7d7"/>
+      <stop offset="100%" stop-color="#c6c6c6"/>
+    </linearGradient>
+  </defs>
+  <g fill="url(#fillFront)" stroke="#6c6c6c" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4">
+    <circle cx="110" cy="46" r="28"/>
+    <path d="M88 72
+      C83 77 80 85 77 93
+      L66 110
+      C54 118 54 126 59 131
+      C46 135 40 145 37 160
+      L31 193
+      C29 203 25 212 20 223
+      L10 245
+      C6 253 7 263 12 270
+      L16 266
+      L18 282
+      C19 287 23 287 25 283
+      L28 268
+      C29 261 31 255 34 249
+      L43 232
+      C48 222 52 211 55 199
+      L63 176
+      L57 208
+      C53 226 49 245 49 263
+      L49 301
+      C49 307 53 312 59 312
+      L62 330
+      C63 339 65 347 68 356
+      L77 398
+      L73 413
+      C71 421 73 428 79 432
+      C84 430 88 427 91 423
+      L96 417
+      L92 412
+      L95 394
+      L97 360
+      L104 311
+      L110 278
+      L116 311
+      L123 360
+      L125 394
+      L128 417
+      L124 423
+      C127 427 131 430 136 432
+      C142 428 144 421 142 413
+      L138 398
+      L152 356
+      C155 347 157 339 158 330
+      L161 312
+      C167 312 171 307 171 301
+      L171 263
+      C171 245 167 226 163 208
+      L157 176
+      L165 199
+      C168 211 172 222 177 232
+      L186 249
+      C189 255 191 261 192 268
+      L195 283
+      C197 287 201 287 202 282
+      L204 266
+      L208 270
+      C213 263 214 253 210 245
+      L200 223
+      C195 212 191 203 189 193
+      L183 160
+      C180 145 174 135 161 131
+      C166 126 166 118 162 112
+      L143 93
+      C140 85 137 77 132 72
+      C126 82 119 88 110 88
+      C101 88 94 82 88 72Z"/>
+    <path d="M110 92 L110 170" fill="none" opacity=".35"/>
+    <path d="M91 115 C97 124 101 132 101 142" fill="none" opacity=".25"/>
+    <path d="M129 115 C123 124 119 132 119 142" fill="none" opacity=".25"/>
+    <path d="M83 434 L96 417" fill="none"/>
+    <path d="M137 434 L124 417" fill="none"/>
+  </g>
+</svg>

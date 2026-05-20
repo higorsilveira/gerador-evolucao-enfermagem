@@ -31,7 +31,7 @@
               <input id="hospital" value="HOSPITAL DA REGIÃO LESTE" />
             </label>
             <label>Setor
-              <input id="sector" value="UTO — ENFERMARIA" />
+              <input id="sector" value="UTO - ENFERMARIA" />
             </label>
             <label>Plantão
               <input id="shift" value="PLANTÃO DIURNO" />
@@ -75,7 +75,7 @@
               <textarea id="admissionHistory" rows="2" placeholder="Ex.: Paciente vítima de queda..."></textarea>
             </label>
             <div class="scale-field">
-              <label>Braden — classificação
+              <label>Braden - classificação
                 <select id="bradenClass">
                   <option value=""></option>
                   <option>Sem risco para lesão por pressão</option>
@@ -87,11 +87,11 @@
               </label>
               <button type="button" class="secondary scale-button" id="btnCalcBraden">Calcular</button>
             </div>
-            <label>Braden — pontos
+            <label>Braden - pontos
               <input id="bradenPoints" inputmode="numeric" placeholder="Ex.: 20" />
             </label>
             <div class="scale-field">
-              <label>Morse — classificação
+              <label>Morse - classificação
                 <select id="morseClass">
                   <option value=""></option>
                   <option>Baixo risco para queda</option>
@@ -101,7 +101,7 @@
               </label>
               <button type="button" class="secondary scale-button" id="btnCalcMorse">Calcular</button>
             </div>
-            <label>Morse — pontos
+            <label>Morse - pontos
               <input id="morsePoints" inputmode="numeric" placeholder="Ex.: 35" />
             </label>
           </div>
@@ -140,8 +140,8 @@
               <select id="painStatus">
                 <option value=""></option>
                 <option value="no">Nega dor</option>
-                <option value="yesRoutine">Refere dor — conduta de rotina/prescrição</option>
-                <option value="yesMedical">Refere dor — equipe médica comunicada</option>
+                <option value="yesRoutine">Refere dor - conduta de rotina/prescrição</option>
+                <option value="yesMedical">Refere dor - equipe médica comunicada</option>
               </select>
             </label>
             <label>Escala de dor
@@ -166,19 +166,19 @@
                 <option value="venturi">Máscara de Venturi</option>
                 <option value="nonRebreather">Máscara não reinalante</option>
                 <option value="macro">Macronebulização</option>
-                <option value="tqtO2">TQT com O₂</option>
+                <option value="tqtO2">TQT com O2</option>
                 <option value="vni">VNI</option>
                 <option value="vm">Ventilação mecânica invasiva</option>
                 <option value="highFlow">Alto fluxo</option>
               </select>
             </label>
-            <label>SatO₂ (%)
+            <label>SatO2 (%)
               <input id="saturation" inputmode="decimal" placeholder="Ex.: 98" />
             </label>
-            <label>Fluxo O₂ (L/min)
+            <label>Fluxo O2 (L/min)
               <input id="oxygenFlow" inputmode="decimal" placeholder="Ex.: 2" />
             </label>
-            <label>FiO₂ (%)
+            <label>FiO2 (%)
               <input id="fio2" inputmode="decimal" placeholder="Ex.: 35" />
             </label>
             <label>FR (irpm)
@@ -201,8 +201,8 @@
               <select id="thorax">
                 <option value=""></option>
                 <option value="symmetric">Simétrica/preservada</option>
-                <option value="asymmetricRight">Assimétrica — menor expansão à direita</option>
-                <option value="asymmetricLeft">Assimétrica — menor expansão à esquerda</option>
+                <option value="asymmetricRight">Assimétrica - menor expansão à direita</option>
+                <option value="asymmetricLeft">Assimétrica - menor expansão à esquerda</option>
                 <option value="deep">Movimentos profundos</option>
                 <option value="superficial">Movimentos superficiais</option>
               </select>
@@ -216,11 +216,11 @@
             <label>Alimentação
               <select id="feedingRoute">
                 <option value=""></option>
-                <option value="vo">VO — via oral</option>
-                <option value="sne">SNE — sonda nasoenteral</option>
-                <option value="sng">SNG — sonda nasogástrica</option>
-                <option value="gtt">GTT — gastrostomia</option>
-                <option value="jjt">JJT — jejunostomia</option>
+                <option value="vo">VO - via oral</option>
+                <option value="sne">SNE - sonda nasoenteral</option>
+                <option value="sng">SNG - sonda nasogástrica</option>
+                <option value="gtt">GTT - gastrostomia</option>
+                <option value="jjt">JJT - jejunostomia</option>
                 <option value="npt">NPT</option>
                 <option value="npp">NPP</option>
                 <option value="npo">Jejum/NPO</option>
@@ -311,30 +311,192 @@
             <label>Observação do acesso
               <input id="accessObservation" placeholder="Ex.: salinizado, infundindo, solicitado troca" />
             </label>
-            <label>Dreno
-              <select id="hasDrain">
+            <label>Tipo de dreno
+              <select id="drainType">
                 <option value=""></option>
-                <option value="no">Não</option>
-                <option value="yes">Sim</option>
+                <option value="chestWaterSeal">Dreno de tórax em selo d'água</option>
+                <option value="penrose">Penrose</option>
+                <option value="portovac">Portovac / Redon</option>
+                <option value="jacksonPratt">Jackson-Pratt / JP</option>
+                <option value="custom">Personalizado</option>
               </select>
             </label>
-            <label>Local do dreno
-              <input id="drainLocation" placeholder="Ex.: região trocantérica direita" />
+            <label class="conditional" data-show="drainType:custom">Descrever tipo de dreno
+              <input id="drainTypeCustom" placeholder="Ex.: dreno laminar" />
             </label>
-            <label>Quantidade do débito
-              <select id="drainAmount">
+            <label class="conditional" data-show="drainType:chestWaterSeal,penrose,portovac,jacksonPratt,custom">Local do dreno
+              <select id="drainLocation">
                 <option value=""></option>
-                <option>Ausente</option>
-                <option>Pequena</option>
-                <option>Moderada</option>
-                <option>Grande</option>
+                <option value="hemitórax direito">Hemitórax direito</option>
+                <option value="hemitórax esquerdo">Hemitórax esquerdo</option>
+                <option value="custom">Personalizado</option>
               </select>
             </label>
-            <label>Aspecto do débito
-              <input id="drainAspect" placeholder="Ex.: serossanguinolento, sem odor fétido" />
+            <label class="conditional" data-show="drainLocation:custom">Descrever local do dreno
+              <input id="drainLocationCustom" placeholder="Ex.: região trocantérica direita" />
             </label>
-            <label class="full">Curativo do óstio do dreno
-              <input id="drainDressing" placeholder="Ex.: limpo, seco e íntegro" />
+            <label class="conditional" data-show="drainType:chestWaterSeal,penrose,portovac,jacksonPratt,custom">Quantidade do débito (ml)
+              <input id="drainAmount" inputmode="numeric" placeholder="Ex.: 120" />
+            </label>
+            <label class="conditional" data-show="drainType:chestWaterSeal,penrose,portovac,jacksonPratt,custom">Aspecto do débito
+              <select id="drainAspect">
+                <option value=""></option>
+                <option value="seroso">Seroso</option>
+                <option value="serossanguinolento">Serossanguinolento</option>
+                <option value="sanguinolento">Sanguinolento</option>
+                <option value="purulento">Purulento</option>
+              </select>
+            </label>
+            <label class="full conditional" data-show="drainType:chestWaterSeal,penrose,portovac,jacksonPratt,custom">Curativo do óstio do dreno
+              <select id="drainDressingStatus">
+                <option value=""></option>
+                <option value="clean">Curativo limpo, seco e íntegro</option>
+                <option value="dirty">Curativo com sujidade</option>
+                <option value="wet">Curativo úmido</option>
+                <option value="bleeding">Curativo com sangramento aparente</option>
+                <option value="secretion">Curativo com secreção aparente</option>
+                <option value="performed">Curativo realizado no plantão</option>
+              </select>
+            </label>
+            <div class="full conditional wound-performed" data-show="drainDressingStatus:performed">
+              <div class="wound-entry-grid">
+                <label>Cobertura anterior
+                  <select id="drainPreviousCover">
+                    <option value=""></option>
+                    <option value="yes">Sim</option>
+                    <option value="no">Não</option>
+                  </select>
+                </label>
+                <label class="conditional" data-show="drainPreviousCover:yes">Tipo de exsudato
+                  <select id="drainExudateType">
+                    <option value=""></option>
+                    <option value="seroso">Seroso</option>
+                    <option value="serossanguinolento">Serossanguinolento</option>
+                    <option value="sanguinolento">Sanguinolento</option>
+                    <option value="purulento">Purulento</option>
+                    <option value="seropurulento">Seropurulento</option>
+                    <option value="fibrinoso">Fibrinoso</option>
+                  </select>
+                </label>
+                <label class="conditional" data-show="drainPreviousCover:yes">Quantidade
+                  <select id="drainExudateAmount">
+                    <option value=""></option>
+                    <option value="pequena">Pequena</option>
+                    <option value="moderada">Moderada</option>
+                    <option value="grande">Grande</option>
+                  </select>
+                </label>
+                <label class="conditional" data-show="drainPreviousCover:yes">Odor
+                  <select id="drainOdor">
+                    <option value=""></option>
+                    <option value="yes">Sim</option>
+                    <option value="no">Não</option>
+                  </select>
+                </label>
+                <label>Leito da ferida
+                  <select id="drainBed">
+                    <option value=""></option>
+                    <option value="avermelhado">Avermelhado</option>
+                    <option value="rosado">Rosado</option>
+                    <option value="amarelo">Amarelo</option>
+                    <option value="enegrecido">Enegrecido</option>
+                  </select>
+                </label>
+                <label>Limpeza do leito da ferida
+                  <select id="drainCleaning">
+                    <option value=""></option>
+                    <option value="sf_0_9">Soro fisiológico 0,9%</option>
+                    <option value="phmb">Solução de PHMB (poliexametileno biguanida)</option>
+                    <option value="other">Outro</option>
+                  </select>
+                </label>
+                <label class="conditional" data-show="drainCleaning:other">Outra limpeza
+                  <input id="drainCleaningOther" placeholder="Descreva a limpeza do leito" />
+                </label>
+                <label>Limpeza da pele perilesional
+                  <select id="drainPerilesionalCleaning">
+                    <option value=""></option>
+                    <option value="clorexidina">Clorexidina</option>
+                    <option value="other">Outro</option>
+                  </select>
+                </label>
+                <label class="conditional" data-show="drainPerilesionalCleaning:other">Outro cuidado perilesional
+                  <input id="drainPerilesionalOther" placeholder="Descreva o cuidado perilesional" />
+                </label>
+                <label>Cobertura primária
+                  <select id="drainPrimaryCover">
+                    <option value=""></option>
+                    <option value="Aquacel">Aquacel</option>
+                    <option value="Alginato">Alginato</option>
+                    <option value="Carvão ativado">Carvão ativado</option>
+                    <option value="Acticoat">Acticoat</option>
+                    <option value="Hidrogel">Hidrogel</option>
+                    <option value="Hidrocolóide">Hidrocolóide</option>
+                    <option value="Petrolato">Petrolato</option>
+                    <option value="Allevyn">Allevyn</option>
+                    <option value="Biatain">Biatain</option>
+                    <option value="Gazes estéreis">Gazes estéreis</option>
+                    <option value="Compressa estéril">Compressa estéril</option>
+                    <option value="other">Outro</option>
+                  </select>
+                </label>
+                <label class="conditional" data-show="drainPrimaryCover:other">Outra cobertura primária
+                  <input id="drainPrimaryCoverOther" placeholder="Descreva a cobertura" />
+                </label>
+                <label>Cobertura secundária
+                  <select id="drainSecondaryCover">
+                    <option value=""></option>
+                    <option value="Aquacel">Aquacel</option>
+                    <option value="Alginato">Alginato</option>
+                    <option value="Carvão ativado">Carvão ativado</option>
+                    <option value="Acticoat">Acticoat</option>
+                    <option value="Hidrogel">Hidrogel</option>
+                    <option value="Hidrocolóide">Hidrocolóide</option>
+                    <option value="Petrolato">Petrolato</option>
+                    <option value="Allevyn">Allevyn</option>
+                    <option value="Biatain">Biatain</option>
+                    <option value="Gazes estéreis">Gazes estéreis</option>
+                    <option value="Compressa estéril">Compressa estéril</option>
+                    <option value="other">Outro</option>
+                  </select>
+                </label>
+                <label class="conditional" data-show="drainSecondaryCover:other">Outra cobertura secundária
+                  <input id="drainSecondaryCoverOther" placeholder="Descreva a cobertura secundária" />
+                </label>
+                <label>Oclusão/fixação
+                  <select id="drainOcclusion">
+                    <option value=""></option>
+                    <option value="micropore">Micropore</option>
+                    <option value="filme_transparente">Filme transparente</option>
+                    <option value="other">Outro</option>
+                  </select>
+                </label>
+                <label class="conditional" data-show="drainOcclusion:other">Outra oclusão/fixação
+                  <input id="drainOcclusionOther" placeholder="Descreva a oclusão/fixação" />
+                </label>
+              </div>
+            </div>
+            <label class="conditional" data-show="drainType:chestWaterSeal">Selo d'água
+              <select id="drainWaterSeal">
+                <option value=""></option>
+                <option value="presente">Presente</option>
+                <option value="ausente">Ausente</option>
+              </select>
+            </label>
+            <label class="conditional" data-show="drainType:chestWaterSeal">Borbulhamento
+              <select id="drainBubbling">
+                <option value=""></option>
+                <option value="ausente">Ausente</option>
+                <option value="intermitente">Intermitente</option>
+                <option value="contínuo">Contínuo</option>
+              </select>
+            </label>
+            <label class="conditional" data-show="drainType:chestWaterSeal">Conexões
+              <select id="drainConnections">
+                <option value=""></option>
+                <option value="sem">Sem sinais de desconexão, dobra ou acotovelamento aparente</option>
+                <option value="com">Com sinais de desconexão, dobra ou acotovelamento aparente</option>
+              </select>
             </label>
           </div>
         </details>
@@ -446,38 +608,19 @@
 
         <details>
           <summary>9. Diagnósticos, condutas e pendências</summary>
-          <div class="diagnosis-grid">
-            <label>Risco de infecção
-              <select id="diagInfection"><option value="auto">Automático</option><option value="yes">Sim</option><option value="no">Não</option></select>
-            </label>
-            <label>Risco de integridade da pele prejudicada
-              <select id="diagSkin"><option value="auto">Automático</option><option value="yes">Sim</option><option value="no">Não</option></select>
-            </label>
-            <label>Risco de quedas
-              <select id="diagFalls"><option value="auto">Automático</option><option value="yes">Sim</option><option value="no">Não</option></select>
-            </label>
-            <label>Risco de dor aguda/Dor aguda
-              <select id="diagPain"><option value="auto">Automático</option><option value="yes">Sim</option><option value="no">Não</option></select>
-            </label>
-            <label>Risco de alteração da perfusão periférica
-              <select id="diagPerfusion"><option value="auto">Automático</option><option value="yes">Sim</option><option value="no">Não</option></select>
-            </label>
-            <label>Integridade tissular prejudicada
-              <select id="diagTissue"><option value="auto">Automático</option><option value="yes">Sim</option><option value="no">Não</option></select>
-            </label>
-            <label>Mobilidade física prejudicada
-              <select id="diagMobility"><option value="auto">Automático</option><option value="yes">Sim</option><option value="no">Não</option></select>
-            </label>
-            <label>Risco de glicemia instável
-              <select id="diagGlycemia"><option value="auto">Automático</option><option value="yes">Sim</option><option value="no">Não</option></select>
-            </label>
-            <label>Déficit no autocuidado para higiene/conforto
-              <select id="diagSelfCare"><option value="auto">Automático</option><option value="yes">Sim</option><option value="no">Não</option></select>
-            </label>
-            <label>Risco de lesão por pressão
-              <select id="diagPressure"><option value="auto">Automático</option><option value="yes">Sim</option><option value="no">Não</option></select>
-            </label>
-          </div>
+          <fieldset class="checkbox-group checkbox-list diagnosis-list">
+            <legend>Diagnósticos</legend>
+            <label><input type="checkbox" id="diagInfection" /> Risco de infecção</label>
+            <label><input type="checkbox" id="diagSkin" /> Risco de integridade da pele prejudicada</label>
+            <label><input type="checkbox" id="diagFalls" /> Risco de quedas</label>
+            <label><input type="checkbox" id="diagPain" /> Risco de dor aguda/Dor aguda</label>
+            <label><input type="checkbox" id="diagPerfusion" /> Risco de alteração da perfusão periférica</label>
+            <label><input type="checkbox" id="diagTissue" /> Integridade tissular prejudicada</label>
+            <label><input type="checkbox" id="diagMobility" /> Mobilidade física prejudicada</label>
+            <label><input type="checkbox" id="diagGlycemia" /> Risco de glicemia instável</label>
+            <label><input type="checkbox" id="diagSelfCare" /> Déficit no autocuidado para higiene/conforto</label>
+            <label><input type="checkbox" id="diagPressure" /> Risco de lesão por pressão</label>
+          </fieldset>
 
           <fieldset class="checkbox-group checkbox-list">
             <legend>Condutas rápidas</legend>
@@ -547,7 +690,7 @@ COREN-DF 635.011</textarea>
             <button type="button" class="secondary" id="btnLoad">Carregar rascunho</button>
             <button type="button" class="ghost" id="btnTxt">Baixar .txt</button>
           </div>
-          <p class="privacy-note">Os dados ficam no navegador. O rascunho local só é salvo se você tocar em “Salvar rascunho local”.</p>
+          <p class="privacy-note">Os dados ficam no navegador. O rascunho local só é salvo se você tocar em "Salvar rascunho local".</p>
         </div>
       </aside>
     </main>
@@ -622,7 +765,7 @@ COREN-DF 635.011</textarea>
             </label>
           </div>
           <div class="scale-result">
-            <div><strong>Pontuação total:</strong> <span id="bradenCalcPoints">—</span></div>
+            <div><strong>Pontuação total:</strong> <span id="bradenCalcPoints">-</span></div>
             <div><strong>Classificação:</strong> <span id="bradenCalcClass">Preencher todos os itens</span></div>
           </div>
         </div>
@@ -690,13 +833,30 @@ COREN-DF 635.011</textarea>
             </label>
           </div>
           <div class="scale-result">
-            <div><strong>Pontuação total:</strong> <span id="morseCalcPoints">—</span></div>
+            <div><strong>Pontuação total:</strong> <span id="morseCalcPoints">-</span></div>
             <div><strong>Classificação:</strong> <span id="morseCalcClass">Preencher todos os itens</span></div>
           </div>
         </div>
         <div class="scale-dialog-actions">
           <button type="button" class="secondary" id="btnResetMorse">Limpar</button>
           <button type="button" id="btnApplyMorse">Aplicar ao formulário</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="bodyMapDialog" class="scale-dialog body-map-dialog">
+      <form method="dialog" class="scale-dialog-form">
+        <div class="scale-dialog-header">
+          <div>
+            <p class="eyebrow">Mapa corporal</p>
+            <h2>Selecionar local do curativo</h2>
+          </div>
+          <button type="button" class="ghost" id="btnCloseBodyMap">Fechar</button>
+        </div>
+        <div id="bodyMapDialogContent" class="scale-dialog-body"></div>
+        <div class="scale-dialog-actions">
+          <button type="button" class="secondary" id="btnCancelBodyMap">Cancelar</button>
+          <button type="button" id="btnApplyBodyMap">Aplicar ao curativo</button>
         </div>
       </form>
     </dialog>

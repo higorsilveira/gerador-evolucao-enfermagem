@@ -226,12 +226,18 @@ legend {
   gap: 10px;
   font-weight: 600;
   color: var(--text);
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .checkbox-group input[type="checkbox"] {
-  width: auto;
-  margin-top: 2px;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
   flex: 0 0 auto;
+  accent-color: var(--primary);
+  touch-action: manipulation;
 }
 
 .checkbox-list {
@@ -245,6 +251,17 @@ legend {
   border-radius: 12px;
   background: #fbfffe;
   line-height: 1.35;
+  min-height: 52px;
+}
+
+.diagnosis-list,
+.checkbox-group.checkbox-list {
+  margin: 0 18px 18px;
+}
+
+.diagnosis-list label,
+.checkbox-group.checkbox-list label {
+  align-items: center;
 }
 
 .section-actions {
@@ -293,6 +310,178 @@ legend {
 
 .wound-entry .full {
   grid-column: 1 / -1;
+}
+
+.body-map-field {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #f8fffe;
+}
+
+.body-picker-field {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #f8fffe;
+}
+
+.body-picker-header,
+.body-picker-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.body-picker-selection {
+  color: var(--primary-dark);
+  font-weight: 800;
+}
+
+.body-map-header,
+.body-map-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.body-map-selection {
+  color: var(--primary-dark);
+  font-weight: 800;
+}
+
+.body-map-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.body-map-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  background: linear-gradient(180deg, #ffffff 0%, #f5fbfa 100%);
+}
+
+.body-map-caption {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.body-figure {
+  position: relative;
+  width: 100%;
+  min-height: 360px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.body-figure-dialog {
+  min-height: 440px;
+}
+
+.body-reference-frame {
+  width: min(220px, 100%);
+  height: 440px;
+  overflow: visible;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 12px 24px rgba(15, 118, 110, 0.08));
+}
+
+.body-reference-frame--front {
+  justify-content: flex-start;
+  overflow: hidden;
+}
+
+.body-reference-frame--back {
+  justify-content: flex-end;
+  overflow: hidden;
+}
+
+.body-reference-image {
+  display: block;
+  height: 100%;
+  width: auto;
+  max-width: none;
+  object-fit: contain;
+}
+
+.body-reference-image--front {
+  object-position: center;
+}
+
+.body-reference-image--back {
+  object-position: center;
+}
+
+.body-hotspot {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  border: 2px solid #fff;
+  background: var(--primary);
+  box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.18);
+  transform: translate(-50%, -50%);
+  padding: 0;
+  z-index: 1;
+}
+
+.body-hotspot::after {
+  content: attr(data-label);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%);
+  padding: 5px 8px;
+  border-radius: 8px;
+  background: rgba(16, 32, 31, 0.92);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+  box-shadow: 0 6px 16px rgba(16, 32, 31, 0.16);
+}
+
+.body-hotspot:hover,
+.body-hotspot:focus-visible,
+.body-hotspot.is-active {
+  background: #dc6803;
+  box-shadow: 0 0 0 4px rgba(220, 104, 3, 0.18);
+}
+
+.body-hotspot:hover::after,
+.body-hotspot:focus-visible::after,
+.body-hotspot.is-active::after {
+  opacity: 1;
+}
+
+.body-map-other.is-active {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+}
+
+.body-map-dialog {
+  width: min(1100px, calc(100vw - 24px));
 }
 
 .scale-dialog {
@@ -464,7 +653,8 @@ button.ghost:hover {
   .checkbox-list,
   .wound-entry-grid,
   .scale-grid,
-  .scale-field {
+  .scale-field,
+  .body-map-grid {
     grid-template-columns: 1fr;
   }
 

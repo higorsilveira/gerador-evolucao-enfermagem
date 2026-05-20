@@ -6,28 +6,164 @@ const value = (id) => ($(id)?.value || "").trim();
 const checked = (id) => Boolean($(id)?.checked);
 const has = (text) => Boolean(String(text || "").trim());
 const lower = (text) => String(text || "").toLowerCase();
-const DEFAULT_SIGNATURE = "Enf.ª Núbia Altina de Carvalho da Silveira\nCOREN-DF 635.011";
+const DEFAULT_SIGNATURE = "Enfermeira Núbia Altina de Carvalho da Silveira\nCOREN-DF 635.011";
 const WOUND_STORAGE_KEY = "__wounds__";
+const CONDUCT_DEFAULT_IDS = ["condVitals", "condComfort", "condObservation"];
+const CONDUCT_AUTO_IDS = [
+  "condConsciousness",
+  "condPain",
+  "condFalls",
+  "condDiet",
+  "condElim",
+  "condSkin",
+  "condAccess",
+  "condOrtho",
+  "condPainReport",
+  "condRespiratory",
+  "condHeadboard",
+  "condDietAcceptance",
+  "condGlycemia",
+  "condStump",
+  "condAvp",
+  "condPressurePrevention",
+  "condReposition",
+  "condSkinCare",
+  "condFallsMorse",
+  "condTransfers",
+  "condSafeEnvironment",
+  "condSvdDiuresis",
+  "condSvdCare"
+];
 
 const woundLocations = [
-  ["quadril_d", "Quadril D"],
-  ["quadril_e", "Quadril E"],
-  ["trocanter_d", "Trocânter D"],
-  ["trocanter_e", "Trocânter E"],
-  ["joelho_d", "Joelho D"],
-  ["joelho_e", "Joelho E"],
-  ["tornozelo_d", "Tornozelo D"],
-  ["tornozelo_e", "Tornozelo E"],
-  ["sacral", "Sacral"],
-  ["calcaneo_d", "Calcâneo D"],
-  ["calcaneo_e", "Calcâneo E"],
-  ["amputacao_transtibial_e", "Coto cirúrgico de amputação transtibial à esquerda"],
-  ["amputacao_transtibial_d", "Coto cirúrgico de amputação transtibial à direita"],
-  ["foa_joelho_d", "Ferida operatória aberta em joelho direito, sem sutura, em cicatrização por segunda intenção"],
+  ["ombro_d", "Ombro direito"],
+  ["ombro_e", "Ombro esquerdo"],
+  ["torax_d", "Hemitórax direito"],
+  ["torax_e", "Hemitórax esquerdo"],
+  ["abdome", "Abdome"],
+  ["quadril_d", "Quadril direito"],
+  ["quadril_e", "Quadril esquerdo"],
+  ["coxa_d", "Coxa direita"],
+  ["coxa_e", "Coxa esquerda"],
+  ["trocanter_d", "Região trocantérica direita"],
+  ["trocanter_e", "Região trocantérica esquerda"],
+  ["joelho_d", "Joelho direito"],
+  ["joelho_e", "Joelho esquerdo"],
+  ["perna_d", "Perna direita"],
+  ["perna_e", "Perna esquerda"],
+  ["tornozelo_d", "Tornozelo direito"],
+  ["tornozelo_e", "Tornozelo esquerdo"],
+  ["pe_d", "Pé direito"],
+  ["pe_e", "Pé esquerdo"],
+  ["escapular_d", "Região escapular direita"],
+  ["escapular_e", "Região escapular esquerda"],
+  ["lombar", "Região lombar"],
+  ["sacral", "Região sacral"],
+  ["glutea_d", "Região glútea direita"],
+  ["glutea_e", "Região glútea esquerda"],
+  ["calcaneo_d", "Calcâneo direito"],
+  ["calcaneo_e", "Calcâneo esquerdo"],
+  ["amputacao_transtibial_e", "Coto transtibial esquerdo"],
+  ["amputacao_transtibial_d", "Coto transtibial direito"],
   ["other", "Outro"]
 ];
 
 const woundLocationMap = Object.fromEntries(woundLocations);
+const BODY_FRONT_IMAGE = "https://upload.wikimedia.org/wikipedia/commons/c/c7/Silhouette_humain_asexue_anterieur_posterieur.svg";
+const BODY_BACK_IMAGE = "https://upload.wikimedia.org/wikipedia/commons/c/c7/Silhouette_humain_asexue_anterieur_posterieur.svg";
+const woundBodyHotspotsLegacy = [
+  { value: "ombro_d", label: "Ombro direito", view: "front", top: 18, left: 38.5 },
+  { value: "ombro_e", label: "Ombro esquerdo", view: "front", top: 18, left: 61.5 },
+  { value: "torax_d", label: "Hemitórax direito", view: "front", top: 30, left: 44.5 },
+  { value: "torax_e", label: "Hemitórax esquerdo", view: "front", top: 30, left: 55.5 },
+  { value: "abdome", label: "Abdome", view: "front", top: 45, left: 50 },
+  { value: "quadril_d", label: "Quadril direito", view: "front", top: 57, left: 45.5 },
+  { value: "quadril_e", label: "Quadril esquerdo", view: "front", top: 57, left: 54.5 },
+  { value: "coxa_d", label: "Coxa direita", view: "front", top: 68, left: 46.5 },
+  { value: "coxa_e", label: "Coxa esquerda", view: "front", top: 68, left: 53.5 },
+  { value: "joelho_d", label: "Joelho direito", view: "front", top: 79, left: 47.2 },
+  { value: "joelho_e", label: "Joelho esquerdo", view: "front", top: 79, left: 52.8 },
+  { value: "perna_d", label: "Perna direita", view: "front", top: 89, left: 47.4 },
+  { value: "perna_e", label: "Perna esquerda", view: "front", top: 89, left: 52.6 },
+  { value: "tornozelo_d", label: "Tornozelo direito", view: "front", top: 97, left: 47.5 },
+  { value: "tornozelo_e", label: "Tornozelo esquerdo", view: "front", top: 97, left: 52.5 },
+  { value: "pe_d", label: "Pé direito", view: "front", top: 104, left: 45.8 },
+  { value: "pe_e", label: "Pé esquerdo", view: "front", top: 104, left: 54.2 },
+  { value: "amputacao_transtibial_d", label: "Coto transtibial direito", view: "front", top: 92.5, left: 47.5 },
+  { value: "amputacao_transtibial_e", label: "Coto transtibial esquerdo", view: "front", top: 92.5, left: 52.5 },
+  { value: "escapular_d", label: "Região escapular direita", view: "back", top: 27.5, left: 43.5 },
+  { value: "escapular_e", label: "Região escapular esquerda", view: "back", top: 27.5, left: 56.5 },
+  { value: "lombar", label: "Região lombar", view: "back", top: 42.5, left: 50 },
+  { value: "trocanter_d", label: "Região trocantérica direita", view: "back", top: 56, left: 45 },
+  { value: "trocanter_e", label: "Região trocantérica esquerda", view: "back", top: 56, left: 55 },
+  { value: "sacral", label: "Região sacral", view: "back", top: 60.5, left: 50 },
+  { value: "glutea_d", label: "Região glútea direita", view: "back", top: 64.5, left: 46.5 },
+  { value: "glutea_e", label: "Região glútea esquerda", view: "back", top: 64.5, left: 53.5 },
+  { value: "calcaneo_d", label: "Calcâneo direito", view: "back", top: 104, left: 47 },
+  { value: "calcaneo_e", label: "Calcâneo esquerdo", view: "back", top: 104, left: 53 }
+];
+const woundBodyHotspotsMisaligned = [
+  { value: "ombro_d", label: "Ombro direito", view: "front", top: 17, left: 40 },
+  { value: "ombro_e", label: "Ombro esquerdo", view: "front", top: 17, left: 60 },
+  { value: "torax_d", label: "Hemitórax direito", view: "front", top: 28, left: 45 },
+  { value: "torax_e", label: "Hemitórax esquerdo", view: "front", top: 28, left: 55 },
+  { value: "abdome", label: "Abdome", view: "front", top: 43, left: 50 },
+  { value: "quadril_d", label: "Quadril direito", view: "front", top: 56, left: 44.5 },
+  { value: "quadril_e", label: "Quadril esquerdo", view: "front", top: 56, left: 55.5 },
+  { value: "coxa_d", label: "Coxa direita", view: "front", top: 67, left: 45.5 },
+  { value: "coxa_e", label: "Coxa esquerda", view: "front", top: 67, left: 54.5 },
+  { value: "joelho_d", label: "Joelho direito", view: "front", top: 80, left: 46.5 },
+  { value: "joelho_e", label: "Joelho esquerdo", view: "front", top: 80, left: 53.5 },
+  { value: "perna_d", label: "Perna direita", view: "front", top: 91, left: 46.8 },
+  { value: "perna_e", label: "Perna esquerda", view: "front", top: 91, left: 53.2 },
+  { value: "tornozelo_d", label: "Tornozelo direito", view: "front", top: 97, left: 46.8 },
+  { value: "tornozelo_e", label: "Tornozelo esquerdo", view: "front", top: 97, left: 53.2 },
+  { value: "pe_d", label: "Pé direito", view: "front", top: 103, left: 44.8 },
+  { value: "pe_e", label: "Pé esquerdo", view: "front", top: 103, left: 55.2 },
+  { value: "amputacao_transtibial_d", label: "Coto transtibial direito", view: "front", top: 93.5, left: 46.8 },
+  { value: "amputacao_transtibial_e", label: "Coto transtibial esquerdo", view: "front", top: 93.5, left: 53.2 },
+  { value: "escapular_d", label: "Região escapular direita", view: "back", top: 23.5, left: 44.5 },
+  { value: "escapular_e", label: "Região escapular esquerda", view: "back", top: 23.5, left: 55.5 },
+  { value: "lombar", label: "Região lombar", view: "back", top: 41.5, left: 50 },
+  { value: "trocanter_d", label: "Região trocantérica direita", view: "back", top: 57.5, left: 45 },
+  { value: "trocanter_e", label: "Região trocantérica esquerda", view: "back", top: 57.5, left: 55 },
+  { value: "sacral", label: "Região sacral", view: "back", top: 63.5, left: 50 },
+  { value: "glutea_d", label: "Região glútea direita", view: "back", top: 67.5, left: 46.2 },
+  { value: "glutea_e", label: "Região glútea esquerda", view: "back", top: 67.5, left: 53.8 },
+  { value: "calcaneo_d", label: "Calcâneo direito", view: "back", top: 103, left: 46.7 },
+  { value: "calcaneo_e", label: "Calcâneo esquerdo", view: "back", top: 103, left: 53.3 }
+];
+const woundBodyHotspots = [
+  { value: "ombro_d", label: "Ombro direito", view: "front", top: 18.5, left: 44.5 },
+  { value: "ombro_e", label: "Ombro esquerdo", view: "front", top: 18.5, left: 55.5 },
+  { value: "torax_d", label: "Hemitórax direito", view: "front", top: 30.5, left: 47 },
+  { value: "torax_e", label: "Hemitórax esquerdo", view: "front", top: 30.5, left: 53 },
+  { value: "abdome", label: "Abdome", view: "front", top: 45.5, left: 50 },
+  { value: "quadril_d", label: "Quadril direito", view: "front", top: 60.5, left: 47.5 },
+  { value: "quadril_e", label: "Quadril esquerdo", view: "front", top: 60.5, left: 52.5 },
+  { value: "coxa_d", label: "Coxa direita", view: "front", top: 73.5, left: 47.8 },
+  { value: "coxa_e", label: "Coxa esquerda", view: "front", top: 73.5, left: 52.2 },
+  { value: "joelho_d", label: "Joelho direito", view: "front", top: 86, left: 47.8 },
+  { value: "joelho_e", label: "Joelho esquerdo", view: "front", top: 86, left: 52.2 },
+  { value: "perna_d", label: "Perna direita", view: "front", top: 99, left: 48 },
+  { value: "perna_e", label: "Perna esquerda", view: "front", top: 99, left: 52 },
+  { value: "tornozelo_d", label: "Tornozelo direito", view: "front", top: 107.5, left: 48 },
+  { value: "tornozelo_e", label: "Tornozelo esquerdo", view: "front", top: 107.5, left: 52 },
+  { value: "pe_d", label: "Pé direito", view: "front", top: 112.5, left: 47.2 },
+  { value: "pe_e", label: "Pé esquerdo", view: "front", top: 112.5, left: 52.8 },
+  { value: "amputacao_transtibial_d", label: "Coto transtibial direito", view: "front", top: 100.5, left: 48 },
+  { value: "amputacao_transtibial_e", label: "Coto transtibial esquerdo", view: "front", top: 100.5, left: 52 },
+  { value: "escapular_d", label: "Região escapular direita", view: "back", top: 24.5, left: 46.5 },
+  { value: "escapular_e", label: "Região escapular esquerda", view: "back", top: 24.5, left: 53.5 },
+  { value: "lombar", label: "Região lombar", view: "back", top: 43.5, left: 50 },
+  { value: "trocanter_d", label: "Região trocantérica direita", view: "back", top: 64, left: 47.2 },
+  { value: "trocanter_e", label: "Região trocantérica esquerda", view: "back", top: 64, left: 52.8 },
+  { value: "sacral", label: "Região sacral", view: "back", top: 71, left: 50 },
+  { value: "glutea_d", label: "Região glútea direita", view: "back", top: 69, left: 47.5 },
+  { value: "glutea_e", label: "Região glútea esquerda", view: "back", top: 69, left: 52.5 },
+  { value: "calcaneo_d", label: "Calcâneo direito", view: "back", top: 111, left: 48.2 },
+  { value: "calcaneo_e", label: "Calcâneo esquerdo", view: "back", top: 111, left: 51.8 }
+];
 const dressingOptionLabels = [
   "Aquacel",
   "Alginato",
@@ -60,6 +196,39 @@ function numericValue(id) {
   return raw === "" ? null : Number(raw);
 }
 
+function bodyFigureMarkup(view) {
+  const alt = view === "front" ? "Silhueta humana assexuada em vista anterior" : "Silhueta humana assexuada em vista posterior";
+  const src = view === "front" ? BODY_FRONT_IMAGE : BODY_BACK_IMAGE;
+  return `
+    <div class="body-reference-frame body-reference-frame--${view}">
+      <img
+        src="${src}"
+        alt="${alt}"
+        class="body-reference-image body-reference-image--${view}"
+        loading="lazy"
+        referrerpolicy="no-referrer"
+      />
+    </div>
+  `;
+}
+
+function bodyMapMarkup(selected = "") {
+  const selectedLabel = woundLocationMap[selected] || (selected === "other" ? "Outro local" : "Nenhum local selecionado");
+  return `
+    <div class="full body-picker-field">
+      <div class="body-picker-header">
+        <span>Local do curativo</span>
+        <span class="body-picker-selection">${escapeHtml(selectedLabel)}</span>
+      </div>
+      <input type="hidden" data-field="location" value="${escapeHtml(selected)}" />
+      <div class="body-picker-actions">
+        <button type="button" class="secondary btn-open-body-map">Selecionar no mapa</button>
+        <button type="button" class="ghost btn-clear-body-map">Limpar</button>
+      </div>
+    </div>
+  `;
+}
+
 function line(text) {
   return has(text) ? text.trim() : "";
 }
@@ -79,6 +248,40 @@ function sentenceCase(text) {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
+function repairMojibakeText(text) {
+  let current = String(text ?? "");
+  if (!/[ÃÂâ]/.test(current)) return current;
+
+  for (let i = 0; i < 3; i++) {
+    if (!/[ÃÂâ]/.test(current)) break;
+    try {
+      current = decodeURIComponent(escape(current));
+    } catch {
+      break;
+    }
+  }
+
+  return current.replace(/\uFFFD+/g, "").trim();
+}
+
+function normalizeVisibleText(root = document) {
+  root.querySelectorAll("label, legend, summary, p, h1, h2, h3, button, option, span, strong").forEach((el) => {
+    if (el.childNodes.length === 1 && el.firstChild?.nodeType === Node.TEXT_NODE) {
+      el.textContent = repairMojibakeText(el.textContent);
+    }
+  });
+
+  root.querySelectorAll("input, textarea").forEach((el) => {
+    if (el.placeholder) el.placeholder = repairMojibakeText(el.placeholder);
+    if (el.value && ["button", "submit"].includes(el.type)) el.value = repairMojibakeText(el.value);
+  });
+
+  root.querySelectorAll("select option").forEach((option) => {
+    option.textContent = repairMojibakeText(option.textContent);
+    option.value = repairMojibakeText(option.value);
+  });
+}
+
 function inferDiabetesRisk() {
   const text = lower([value("hpp"), value("dihDpo"), value("admissionHistory"), value("importantMeds")].join(" "));
   return ["diabetes", "dm ", "dm1", "dm2", "insulina", "glicem"].some((term) => text.includes(term));
@@ -95,14 +298,45 @@ function isMobilityReduced() {
   return has(value("mobility")) && value("mobility") !== "walkAlone";
 }
 
+function isConductAutoField(id) {
+  return CONDUCT_AUTO_IDS.includes(id);
+}
+
+function resetConductOverrides() {
+  CONDUCT_AUTO_IDS.forEach((id) => {
+    const el = $(id);
+    if (el) delete el.dataset.manual;
+  });
+}
+
+function markConductOverridesFromData(data = {}) {
+  CONDUCT_AUTO_IDS.forEach((id) => {
+    const el = $(id);
+    if (!el || data[id] === undefined) return;
+    el.dataset.manual = "true";
+  });
+}
+
+function applySuggestedConduct(id, shouldCheck) {
+  const el = $(id);
+  if (!el || el.dataset.manual === "true") return;
+  el.checked = Boolean(shouldCheck);
+}
+
 function bindAutoUpdate(root = document) {
   root.querySelectorAll("input, select, textarea").forEach((el) => {
     if (el.dataset.bound === "true") return;
     el.addEventListener("input", () => {
+      if (el.type === "checkbox" && isConductAutoField(el.id)) {
+        el.dataset.manual = "true";
+      }
       toggleConditionals();
       generateEvolution();
     });
     el.addEventListener("change", () => {
+      if (el.type === "checkbox" && isConductAutoField(el.id)) {
+        el.dataset.manual = "true";
+      }
       toggleConditionals();
       generateEvolution();
     });
@@ -146,11 +380,7 @@ function makeWoundEntry(data = {}) {
           <option value="performed">Curativo realizado no plantão</option>
         </select>
       </label>
-      <label>Local
-        <select data-field="location">
-          ${buildOptions([["", ""], ...woundLocations], data.location || "")}
-        </select>
-      </label>
+      ${bodyMapMarkup(data.location || "")}
       <label class="full conditional wound-other-location">Outro local
         <input data-field="locationOther" placeholder="Descreva o local do curativo" />
       </label>
@@ -259,7 +489,9 @@ function makeWoundEntry(data = {}) {
   });
 
   bindAutoUpdate(entry);
+  bindWoundLocationMap(entry);
   $("woundEntries").appendChild(entry);
+  normalizeVisibleText(entry);
   return entry;
 }
 
@@ -301,6 +533,85 @@ function resolvedWoundOption(entry, fieldName, otherFieldName) {
   if (selected === "other") return woundValue(entry, otherFieldName);
   return selected;
 }
+function resolvedDrainOption(fieldName, otherFieldName) {
+  const selected = value(fieldName);
+  if (selected === "other") return value(otherFieldName);
+  return selected;
+}
+
+function getDrainDressingAssessment() {
+  const status = value("drainDressingStatus");
+  const map = {
+    clean: "limpa, seca e íntegra",
+    dirty: "com sujidade",
+    wet: "úmida",
+    bleeding: "com sangramento aparente",
+    secretion: "com secreção aparente",
+    performed: "limpa, seca e íntegra após curativo realizado no plantão"
+  };
+  return map[status] || "em bom estado";
+}
+
+function getDrainDressingProcedureSentence() {
+  if (value("drainDressingStatus") !== "performed") return "";
+
+  const bedMap = {
+    avermelhado: "Leito da ferida avermelhado",
+    rosado: "Leito da ferida rosado",
+    amarelo: "Leito da ferida amarelado",
+    enegrecido: "Leito da ferida enegrecido"
+  };
+  const cleaningMap = {
+    sf_0_9: "limpeza do leito com SF 0,9%",
+    phmb: "limpeza do leito com solução de PHMB"
+  };
+  const perilesionalMap = {
+    clorexidina: "limpeza da pele perilesional com clorexidina"
+  };
+  const occlusionMap = {
+    micropore: "micropore",
+    filme_transparente: "filme transparente"
+  };
+
+  const parts = ["Curativo do óstio do dreno realizado no plantão."];
+  const previousCover = value("drainPreviousCover");
+  if (previousCover === "yes") {
+    const exudateType = value("drainExudateType") || "não especificado";
+    const exudateAmount = value("drainExudateAmount") || "não especificada";
+    const odor = value("drainOdor") === "yes" ? "com" : "sem";
+    parts.push(`Ao retirar cobertura anterior, observado exsudato ${exudateType} em ${exudateAmount} quantidade, ${odor} odor fétido.`);
+  } else if (previousCover === "no") {
+    parts.push("Sem cobertura anterior no momento do procedimento.");
+  }
+
+  if (bedMap[value("drainBed")]) parts.push(`${bedMap[value("drainBed")]}.`);
+
+  const careParts = [];
+  const cleaning = resolvedDrainOption("drainCleaning", "drainCleaningOther");
+  const perilesional = resolvedDrainOption("drainPerilesionalCleaning", "drainPerilesionalOther");
+  if (cleaningMap[cleaning]) careParts.push(cleaningMap[cleaning]);
+  else if (has(cleaning)) careParts.push(`limpeza do leito com ${cleaning}`);
+  if (perilesionalMap[perilesional]) careParts.push(perilesionalMap[perilesional]);
+  else if (has(perilesional)) careParts.push(perilesional);
+  if (careParts.length) parts.push(`${sentenceCase(careParts.join(" e "))}.`);
+
+  const coverParts = [];
+  const primary = resolvedDrainOption("drainPrimaryCover", "drainPrimaryCoverOther");
+  const secondary = resolvedDrainOption("drainSecondaryCover", "drainSecondaryCoverOther");
+  const occlusion = resolvedDrainOption("drainOcclusion", "drainOcclusionOther");
+  if (has(primary) && has(secondary)) {
+    coverParts.push(`Aplicada cobertura primária com ${primary}`);
+    coverParts.push(`cobertura secundária com ${secondary}`);
+  } else if (has(primary)) {
+    coverParts.push(`Aplicada cobertura com ${primary}`);
+  } else if (has(secondary)) {
+    coverParts.push(`Aplicada cobertura secundária com ${secondary}`);
+  }
+  if (has(occlusion)) coverParts.push(`Realizada oclusão com ${occlusionMap[occlusion] || occlusion}`);
+  if (coverParts.length) parts.push(`${coverParts.join(" e ")}.`);
+
+  return parts.join(" ");
+}
 
 function toggleWoundConditionals() {
   woundEntries().forEach((entry) => {
@@ -322,6 +633,112 @@ function toggleWoundConditionals() {
     entry.querySelectorAll(".wound-secondary-other").forEach((el) => el.classList.toggle("is-hidden", !(status === "performed" && secondary === "other")));
     entry.querySelectorAll(".wound-occlusion-other").forEach((el) => el.classList.toggle("is-hidden", !(status === "performed" && occlusion === "other")));
   });
+}
+
+function syncWoundLocationUi(entry) {
+  const selected = woundValue(entry, "location");
+  const selection = entry.querySelector(".body-picker-selection");
+  if (selection) {
+    selection.textContent = woundLocationMap[selected] || (selected === "other" ? "Outro local" : "Nenhum local selecionado");
+  }
+}
+
+let activeWoundEntry = null;
+let pendingWoundLocation = "";
+
+function renderBodyMapDialog(selected = "") {
+  const selectedLabel = woundLocationMap[selected] || (selected === "other" ? "Outro local" : "Nenhum local selecionado");
+  const renderHotspots = (view) => woundBodyHotspots
+    .filter((spot) => spot.view === view)
+    .map((spot) => `
+      <button
+        type="button"
+        class="body-hotspot${spot.value === selected ? " is-active" : ""}"
+        data-dialog-location-choice="${spot.value}"
+        data-label="${escapeHtml(spot.label)}"
+        style="top:${spot.top}%;left:${spot.left}%"
+        aria-label="${escapeHtml(spot.label)}"
+        title="${escapeHtml(spot.label)}"
+      ></button>
+    `).join("");
+
+  $("bodyMapDialogContent").innerHTML = `
+    <div class="body-map-field body-map-field-dialog">
+      <div class="body-map-header">
+        <span>Local do curativo</span>
+        <span class="body-map-selection">${escapeHtml(selectedLabel)}</span>
+      </div>
+      <div class="body-map-grid">
+        <div class="body-map-card">
+          <span class="body-map-caption">Frente</span>
+          <div class="body-figure body-figure-dialog">
+            ${bodyFigureMarkup("front")}
+            ${renderHotspots("front")}
+          </div>
+        </div>
+        <div class="body-map-card">
+          <span class="body-map-caption">Dorso</span>
+          <div class="body-figure body-figure-dialog">
+            ${bodyFigureMarkup("back")}
+            ${renderHotspots("back")}
+          </div>
+        </div>
+      </div>
+      <div class="body-map-actions">
+        <button type="button" class="ghost body-map-other${selected === "other" ? " is-active" : ""}" data-dialog-location-choice="other">Outro local</button>
+        <button type="button" class="ghost body-map-clear" id="btnClearDialogBodyMap">Limpar seleção</button>
+      </div>
+    </div>
+  `;
+  bindBodyMapDialogHotspots();
+}
+
+function bindBodyMapDialogHotspots() {
+  document.querySelectorAll("[data-dialog-location-choice]").forEach((button) => {
+    button.addEventListener("click", () => {
+      pendingWoundLocation = button.dataset.dialogLocationChoice || "";
+      renderBodyMapDialog(pendingWoundLocation);
+    });
+  });
+  $("btnClearDialogBodyMap")?.addEventListener("click", () => {
+    pendingWoundLocation = "";
+    renderBodyMapDialog("");
+  });
+}
+
+function openBodyMapDialog(entry) {
+  activeWoundEntry = entry;
+  pendingWoundLocation = woundValue(entry, "location");
+  renderBodyMapDialog(pendingWoundLocation);
+  $("bodyMapDialog").showModal();
+}
+
+function applyBodyMapDialogSelection() {
+  if (!activeWoundEntry) return;
+  const field = woundField(activeWoundEntry, "location");
+  if (field) field.value = pendingWoundLocation;
+  if (pendingWoundLocation !== "other") {
+    const other = woundField(activeWoundEntry, "locationOther");
+    if (other) other.value = "";
+  }
+  syncWoundLocationUi(activeWoundEntry);
+  toggleConditionals();
+  generateEvolution();
+  $("bodyMapDialog").close();
+}
+
+function bindWoundLocationMap(entry) {
+  entry.querySelector(".btn-open-body-map")?.addEventListener("click", () => openBodyMapDialog(entry));
+  entry.querySelector(".btn-clear-body-map")?.addEventListener("click", () => {
+    const field = woundField(entry, "location");
+    const other = woundField(entry, "locationOther");
+    if (field) field.value = "";
+    if (other) other.value = "";
+    syncWoundLocationUi(entry);
+    toggleConditionals();
+    generateEvolution();
+  });
+  syncWoundLocationUi(entry);
 }
 
 function getBradenCalculation() {
@@ -354,13 +771,13 @@ function getMorseCalculation() {
 
 function syncBradenSummary() {
   const result = getBradenCalculation();
-  $("bradenCalcPoints").textContent = result.points || "—";
+  $("bradenCalcPoints").textContent = result.points || "-";
   $("bradenCalcClass").textContent = result.classification;
 }
 
 function syncMorseSummary() {
   const result = getMorseCalculation();
-  $("morseCalcPoints").textContent = result.points || "—";
+  $("morseCalcPoints").textContent = result.points || "-";
   $("morseCalcClass").textContent = result.classification;
 }
 
@@ -401,7 +818,7 @@ function ageFromBirthDate(text) {
 }
 
 function satText() {
-  return has(value("saturation")) ? `mantendo SatO₂ ${value("saturation")}%` : "";
+  return has(value("saturation")) ? `mantendo SatO2 ${value("saturation")}%` : "";
 }
 
 function flowText() {
@@ -409,7 +826,7 @@ function flowText() {
 }
 
 function fio2Text() {
-  return has(value("fio2")) ? `FiO₂ ${value("fio2")}%` : "";
+  return has(value("fio2")) ? `FiO2 ${value("fio2")}%` : "";
 }
 
 function respiratorySignsText() {
@@ -460,7 +877,7 @@ function getHeader() {
 
   const allergyStatus = value("allergyStatus");
   const allergyDetails = value("allergyDetails");
-  if (allergyStatus === "no") lines.push("Alergias: negadas.");
+  if (allergyStatus === "no") lines.push("Alergias: Não refere alergias conhecidas.");
   if (allergyStatus === "yes") lines.push(`Alergias: ${endWithPeriod(allergyDetails || "referidas, sem detalhamento")}`);
 
   const continuousMedsStatus = value("continuousMedsStatus");
@@ -475,8 +892,8 @@ function getHeader() {
   const morse = value("morseClass");
   const morsePts = value("morsePoints");
   if (has(braden) || has(morse)) lines.push("Escalas de risco:");
-  if (has(braden)) lines.push(`Braden: ${braden}${has(bradenPts) ? ` — ${bradenPts} pontos` : ""}.`);
-  if (has(morse)) lines.push(`Morse: ${morse}${has(morsePts) ? ` — ${morsePts} pontos` : ""}.`);
+  if (has(braden)) lines.push(`Braden: ${braden}${has(bradenPts) ? `  ${bradenPts} pontos` : ""}.`);
+  if (has(morse)) lines.push(`Morse: ${morse}${has(morsePts) ? `  ${morsePts} pontos` : ""}.`);
   return lines.filter((x, i, arr) => x !== "" || arr[i - 1] !== "").join("\n").trim();
 }
 
@@ -532,13 +949,13 @@ function getRespiratorySentence() {
   const map = {
     roomAir: `Respira em ar ambiente${add}.`,
     roomAirTqt: `Respira em ar ambiente por traqueostomia${add}. Cânula pérvia, sem intercorrências aparentes no momento.`,
-    nasal: `Em uso de O₂ por cateter nasal ${flow}${add}.`,
-    simpleMask: `Em uso de O₂ por máscara simples ${flow}${add}.`,
-    venturi: `Em uso de O₂ por máscara de Venturi ${fio2}${add}.`,
-    nonRebreather: `Em uso de O₂ por máscara não reinalante ${flow}${add}. Paciente em observação quanto ao padrão respiratório.`,
-    macro: `Em uso de macronebulização com O₂ ${flow}${add}.`,
-    tqtO2: `Traqueostomizado(a), em uso de O₂ suplementar por TQT ${flow}${add}. Cânula pérvia, mantido(a) em observação.`,
-    vni: `Em uso de ventilação não invasiva${has(obs) ? ` tipo ${obs}` : ""}${sat ? `, ${sat}` : ""}. Mantido(a) em observação quanto à adaptação e padrão respiratório.`,
+    nasal: `Em uso de O2 por cateter nasal ${flow}${add}.`,
+    simpleMask: `Em uso de O2 por máscara simples ${flow}${add}.`,
+    venturi: `Em uso de O2 por máscara de Venturi ${fio2}${add}.`,
+    nonRebreather: `Em uso de O2 por máscara não reinalante ${flow}${add}. Paciente em observação quanto ao padrão respiratório.`,
+    macro: `Em uso de macronebulização com O2 ${flow}${add}.`,
+    tqtO2: `Traqueostomizado(a), em uso de O2 suplementar por TQT ${flow}${add}. Cânula pérvia, mantido(a) em observação.`,
+    vni: `Em uso de ventilação não invasiva${has(obs) ? ` tipo ${obs}` : ""}${sat ? `, ${sat}` : ""}. Mantido(a) em observação quanto à adaptação e ao padrão respiratório.`,
     vm: `Paciente em ventilação mecânica invasiva${add}, sob monitorização. Cânula/TOT pérvio, sem intercorrências aparentes no momento.`,
     highFlow: `Em uso de oxigenoterapia de alto fluxo${flow ? `, fluxo ${value("oxygenFlow")} L/min` : ""}${fio2 ? `, ${fio2}` : ""}${sat ? `, ${sat}` : ""}. Paciente mantido(a) em observação.`
   };
@@ -617,7 +1034,7 @@ function getEliminationSentence() {
   };
 
   if (urine === "svd" || urine === "sva") {
-    const catheter = urine === "svd" ? "sonda vesical de demora" : "sonda vesical de alívio";
+    const catheter = urine === "svd" ? "sonda vesical de demora" : "sonda vesical de alvio";
     const aspect = detailedUrineMap[value("urineAspect")];
     const amount = value("urineAmount");
     const amountWithUnit = /\bml\b/i.test(amount) ? amount : `${amount} ml`;
@@ -640,7 +1057,7 @@ function getAccessSentence() {
   if (type === "none") return "Desprovido(a) de acesso venoso no momento.";
   const loc = value("accessLocation") || "local não especificado";
   const dressing = accessDressingText();
-  const suffix = dressing ? `, ${dressing}` : ", pérvio, com fixação adequada, sem sinais flogísticos aparentes";
+  const suffix = dressing ? `, ${dressing}` : ", prvio, com fixao adequada, sem sinais flogsticos aparentes";
 
   const map = {
     avp: `Mantém AVP em ${loc}, pérvio, salinizado${suffix}.`,
@@ -656,12 +1073,35 @@ function getAccessSentence() {
 }
 
 function getDrainSentence() {
-  if (value("hasDrain") !== "yes") return "";
-  const loc = value("drainLocation") || "região não especificada";
-  const dressing = value("drainDressing") || "em bom aspecto";
-  const amount = value("drainAmount") || "não quantificada";
+  const type = value("drainType");
+  if (!has(type)) return "";
+
+  const typeMap = {
+    chestWaterSeal: "dreno de tórax em selo d'água",
+    penrose: "Penrose",
+    portovac: "Portovac / Redon",
+    jacksonPratt: "Jackson-Pratt / JP",
+    custom: value("drainTypeCustom") || "dreno personalizado"
+  };
+
+  const rawLocation = value("drainLocation");
+  const loc = rawLocation === "custom"
+    ? (value("drainLocationCustom") || "local no especificado")
+    : (rawLocation || "local não especificado");
+  const dressing = getDrainDressingAssessment();
+  const dressingProcedure = getDrainDressingProcedureSentence();
+  const amount = value("drainAmount") || "___";
   const aspect = value("drainAspect") || "não especificado";
-  return `Mantém dreno em ${loc}, fixado adequadamente, com curativo em óstio de inserção ${dressing}, sem sinais flogísticos aparentes no momento. Apresenta débito em quantidade ${lower(amount)}, de aspecto ${aspect}. Dispositivo mantido pérvio e posicionado adequadamente. Paciente mantido(a) em observação quanto a débito, aspecto da secreção, fixação e integridade do curativo.`;
+
+  if (type === "chestWaterSeal") {
+    const waterSeal = value("drainWaterSeal") || "não informada";
+    const bubbling = value("drainBubbling") || "não informado";
+    const connections = value("drainConnections") === "com" ? "com" : "sem";
+    const base = `Mantém dreno de tórax em selo d'água em ${loc}, com sistema fechado, íntegro e mantido abaixo do nível do tórax. Observado débito de ${amount} ml, com aspecto ${aspect} no reservatório. Curativo em óstio de inserção com cobertura externa apresentando-se ${dressing}. Selo d'água com oscilação respiratória ${waterSeal} e borbulhamento ${bubbling} no momento. Conexões avaliadas, ${connections} sinais aparentes de desconexão, dobras, tração ou acotovelamento. Paciente mantido(a) em observação quanto ao débito, aspecto da secreção, fixação do dreno, permeabilidade do sistema e integridade do curativo.`;
+    return dressingProcedure ? `${base} ${dressingProcedure}` : base;
+  }
+
+  return `Mantém ${typeMap[type]} em ${loc}. Observado débito de ${amount} ml, com aspecto ${aspect}. Curativo em óstio de inserção com cobertura externa apresentando-se ${dressing}. Paciente mantido(a) em observação quanto ao débito, aspecto da secreção, fixação do dreno, permeabilidade do sistema e integridade do curativo.${dressingProcedure ? ` ${dressingProcedure}` : ""}`;
 }
 
 function getWoundSentence() {
@@ -717,7 +1157,7 @@ function getWoundSentence() {
       const fragments = [`Realizado curativo em região de ${loc}.`];
 
       if (previousCover === "yes") {
-        fragments.push(`Ao retirar cobertura anterior, observado exsudato ${exudateType || "não especificado"} em ${exudateAmount || "não especificada"} quantidade, ${odor === "yes" ? "com" : "sem"} odor fétido.`);
+        fragments.push(`Ao retirar cobertura anterior, observado exsudato ${exudateType || "no especificado"} em ${exudateAmount || "no especificada"} quantidade, ${odor === "yes" ? "com" : "sem"} odor ftido.`);
       } else if (previousCover === "no") {
         fragments.push("Sem cobertura anterior no momento do procedimento.");
       }
@@ -743,7 +1183,7 @@ function getWoundSentence() {
       } else if (has(secondary)) {
         coverParts.push(`Aplicada cobertura secundária com ${secondary}`);
       }
-      if (has(occlusion)) coverParts.push(`${has(primaryCover) || has(secondary) ? "oclusão" : "Realizada oclusão"} com ${occlusionMap[occlusion] || occlusion}, mantendo curativo limpo, seco e bem fixado`);
+      if (has(occlusion)) coverParts.push(`Realizada oclusão com ${occlusionMap[occlusion] || occlusion}, mantendo curativo limpo, seco e bem fixado`);
 
       if (coverParts.length) fragments.push(`${coverParts.join(" e ")}.`);
       fragments.push("Paciente orientado e segue aos cuidados da equipe de enfermagem.");
@@ -755,7 +1195,6 @@ function getWoundSentence() {
 
   return parts.join(" ");
 }
-
 function getMobilitySentence() {
   const m = value("mobility");
   const detail = value("mobilityDetail");
@@ -812,9 +1251,9 @@ function getSkinSentence() {
   const s = value("skin");
   const obs = value("skinObservation");
   const map = {
-    intact: `Pele íntegra nas demais áreas avaliadas${obs ? `, ${obs}` : ", sem lesões aparentes"}.`,
-    risk: `Pele com risco aumentado para lesão por pressão${obs ? `, ${obs}` : ""}. Mantidas medidas preventivas conforme rotina assistencial.`,
-    lesion: `Apresenta alteração/lesão de pele${obs ? `: ${endWithPeriod(obs)}` : "."}`
+    intact: `Pele ntegra nas demais reas avaliadas${obs ? `, ${obs}` : ", sem leses aparentes"}.`,
+    risk: `Pele com risco aumentado para leso por presso${obs ? `, ${obs}` : ""}. Mantidas medidas preventivas conforme rotina assistencial.`,
+    lesion: `Apresenta alterao/leso de pele${obs ? `: ${endWithPeriod(obs)}` : "."}`
   };
   return map[s] || "";
 }
@@ -835,7 +1274,7 @@ function getIdentificationSentence() {
 function autoDiagnoses() {
   const wounds = collectWounds();
   const hasWound = wounds.length > 0;
-  const infection = value("accessType") && value("accessType") !== "none" || value("hasDrain") === "yes" || hasWound || ["sne", "sng", "gtt", "jjt", "npt", "npp"].includes(value("feedingRoute"));
+  const infection = value("accessType") && value("accessType") !== "none" || has(value("drainType")) || hasWound || ["sne", "sng", "gtt", "jjt", "npt", "npp"].includes(value("feedingRoute"));
   const skin = ["Risco leve", "Risco moderado", "Risco alto", "Risco muito alto"].some((risk) => value("bradenClass").startsWith(risk)) || ["bedridden", "restrictedBed", "wheelchair", "wheelchairIndependent", "wheelchairDependent", "paraplegic", "tetraplegic", "reduced"].includes(value("mobility")) || hasWound || value("skin") === "risk" || value("skin") === "lesion";
   const falls = lower(value("morseClass")).includes("médio") || lower(value("morseClass")).includes("alto") || ["walkHelp", "walker", "crutch", "cane", "wheelchair", "wheelchairIndependent", "wheelchairDependent", "unstable", "fallRisk", "postOpLimited"].includes(value("mobility"));
   const pain = value("painStatus") === "yesRoutine" || value("painStatus") === "yesMedical" || ["alteredWithImmobilization", "alteredWithoutImmobilization", "tractionAltered"].includes(value("orthoType"));
@@ -848,28 +1287,20 @@ function autoDiagnoses() {
   return { infection, skin, falls, pain, perfusion, tissue, mobility, glycemia, selfCare, pressure };
 }
 
-function diagnosisAllowed(id, autoValue) {
-  const setting = value(id);
-  if (setting === "yes") return true;
-  if (setting === "no") return false;
-  return Boolean(autoValue);
-}
-
 function getDiagnosesSection() {
-  const auto = autoDiagnoses();
   const items = [];
-  if (diagnosisAllowed("diagInfection", auto.infection)) items.push("Risco de infecção.");
-  if (diagnosisAllowed("diagSkin", auto.skin)) items.push("Risco de integridade da pele prejudicada.");
-  if (diagnosisAllowed("diagFalls", auto.falls)) items.push("Risco de quedas.");
-  if (diagnosisAllowed("diagPain", auto.pain)) {
+  if (checked("diagInfection")) items.push("Risco de infecção.");
+  if (checked("diagSkin")) items.push("Risco de integridade da pele prejudicada.");
+  if (checked("diagFalls")) items.push("Risco de quedas.");
+  if (checked("diagPain")) {
     items.push(value("painStatus") === "yesRoutine" || value("painStatus") === "yesMedical" ? "Dor aguda." : "Risco de dor aguda.");
   }
-  if (diagnosisAllowed("diagPerfusion", auto.perfusion)) items.push("Risco de alteração da perfusão periférica em membro acometido/imobilizado.");
-  if (diagnosisAllowed("diagTissue", auto.tissue)) items.push("Integridade tissular prejudicada.");
-  if (diagnosisAllowed("diagMobility", auto.mobility)) items.push("Mobilidade física prejudicada.");
-  if (diagnosisAllowed("diagGlycemia", auto.glycemia)) items.push("Risco de glicemia instável.");
-  if (diagnosisAllowed("diagSelfCare", auto.selfCare)) items.push("Déficit no autocuidado para higiene/conforto.");
-  if (diagnosisAllowed("diagPressure", auto.pressure)) items.push("Risco de lesão por pressão, relacionado à mobilidade reduzida e permanência prolongada em leito/cadeira de rodas.");
+  if (checked("diagPerfusion")) items.push("Risco de alteração da perfusão periférica em membro acometido/imobilizado.");
+  if (checked("diagTissue")) items.push("Integridade tissular prejudicada.");
+  if (checked("diagMobility")) items.push("Mobilidade física prejudicada.");
+  if (checked("diagGlycemia")) items.push("Risco de glicemia instável.");
+  if (checked("diagSelfCare")) items.push("Déficit no autocuidado para higiene/conforto.");
+  if (checked("diagPressure")) items.push("Risco de lesão por pressão, relacionado à mobilidade reduzida e permanência prolongada em leito/cadeira de rodas.");
   if (!items.length) return "";
   return `Diagnósticos de enfermagem:\n${items.map((item) => `(x) ${item}`).join("\n")}`;
 }
@@ -906,7 +1337,7 @@ function getConductsSection() {
   ];
   const selected = map.filter(([id]) => checked(id)).map(([, text]) => text);
   if (!selected.length) return "";
-  return `Cuidados/Conduta de enfermagem:\n${selected.map((item) => `• ${item};`).join("\n")}`;
+  return `Cuidados/Conduta de enfermagem:\n${selected.map((item) => `- ${item};`).join("\n")}`;
 }
 
 function getPendingSection() {
@@ -924,7 +1355,7 @@ function applyAutoConducts() {
   const shouldDiet = value("feedingRoute");
   const shouldElim = value("urine") || value("bowel");
   const shouldSkin = value("skin") || collectWounds().length || value("bradenClass");
-  const shouldAccess = value("accessType") && value("accessType") !== "none" || value("hasDrain") === "yes";
+  const shouldAccess = value("accessType") && value("accessType") !== "none" || has(value("drainType"));
   const shouldOrtho = value("orthoType") || ["postOpLimited", "limping", "reduced"].includes(value("mobility"));
   const shouldPressure = likelyPressureRisk();
   const shouldGlycemia = inferDiabetesRisk();
@@ -935,35 +1366,29 @@ function applyAutoConducts() {
   const shouldAvp = value("accessType") === "avp";
   const shouldStump = collectWounds().some((item) => lower(`${item.location || ""} ${item.locationOther || ""}`).includes("amput"));
 
-  if (shouldPain) $("condPain").checked = true;
-  if (shouldFalls) $("condFalls").checked = true;
-  if (shouldDiet) $("condDiet").checked = true;
-  if (shouldElim) $("condElim").checked = true;
-  if (shouldSkin) $("condSkin").checked = true;
-  if (shouldAccess) $("condAccess").checked = true;
-  if (shouldOrtho) $("condOrtho").checked = true;
-  if (value("consciousness") && value("consciousness") !== "bom") $("condConsciousness").checked = true;
-  if (shouldPain) $("condPainReport").checked = true;
-  if (shouldResp) $("condRespiratory").checked = true;
-  if (shouldHeadboard) $("condHeadboard").checked = true;
-  if (shouldDiet) $("condDietAcceptance").checked = true;
-  if (shouldGlycemia) $("condGlycemia").checked = true;
-  if (shouldStump) $("condStump").checked = true;
-  if (shouldAvp) $("condAvp").checked = true;
-  if (shouldPressure) {
-    $("condPressurePrevention").checked = true;
-    $("condReposition").checked = true;
-    $("condSkinCare").checked = true;
-  }
-  if (shouldFalls) $("condFallsMorse").checked = true;
-  if (shouldTransfers) {
-    $("condTransfers").checked = true;
-    $("condSafeEnvironment").checked = true;
-  }
-  if (shouldSvd) {
-    $("condSvdDiuresis").checked = true;
-    $("condSvdCare").checked = true;
-  }
+  applySuggestedConduct("condPain", shouldPain);
+  applySuggestedConduct("condFalls", shouldFalls);
+  applySuggestedConduct("condDiet", shouldDiet);
+  applySuggestedConduct("condElim", shouldElim);
+  applySuggestedConduct("condSkin", shouldSkin);
+  applySuggestedConduct("condAccess", shouldAccess);
+  applySuggestedConduct("condOrtho", shouldOrtho);
+  applySuggestedConduct("condConsciousness", value("consciousness") && value("consciousness") !== "bom");
+  applySuggestedConduct("condPainReport", shouldPain);
+  applySuggestedConduct("condRespiratory", shouldResp);
+  applySuggestedConduct("condHeadboard", shouldHeadboard);
+  applySuggestedConduct("condDietAcceptance", shouldDiet);
+  applySuggestedConduct("condGlycemia", shouldGlycemia);
+  applySuggestedConduct("condStump", shouldStump);
+  applySuggestedConduct("condAvp", shouldAvp);
+  applySuggestedConduct("condPressurePrevention", shouldPressure);
+  applySuggestedConduct("condReposition", shouldPressure);
+  applySuggestedConduct("condSkinCare", shouldPressure);
+  applySuggestedConduct("condFallsMorse", shouldFalls);
+  applySuggestedConduct("condTransfers", shouldTransfers);
+  applySuggestedConduct("condSafeEnvironment", shouldTransfers);
+  applySuggestedConduct("condSvdDiuresis", shouldSvd);
+  applySuggestedConduct("condSvdCare", shouldSvd);
 }
 
 function generateEvolution() {
@@ -998,7 +1423,7 @@ function generateEvolution() {
     value("signature") || DEFAULT_SIGNATURE
   ].filter(has);
 
-  const text = sections.join("\n\n").replace(/\n{3,}/g, "\n\n").trim();
+  const text = repairMojibakeText(sections.join("\n\n").replace(/\n{3,}/g, "\n\n").trim());
   $("output").value = text;
   $("statusBadge").textContent = text.length ? "gerado" : "rascunho";
 }
@@ -1024,13 +1449,17 @@ function collectForm() {
   return data;
 }
 
-function fillForm(data) {
+function fillForm(data, options = {}) {
+  resetConductOverrides();
   ids.forEach((id) => {
     const el = $(id);
     if (!el || data[id] === undefined) return;
     if (el.type === "checkbox") el.checked = Boolean(data[id]);
     else el.value = data[id];
   });
+  if (options.preserveConductChoices) {
+    markConductOverridesFromData(data);
+  }
   fillWounds(data[WOUND_STORAGE_KEY] || []);
   if (!has(value("signature"))) $("signature").value = DEFAULT_SIGNATURE;
   toggleConditionals();
@@ -1048,17 +1477,18 @@ function loadDraft() {
     alert("Nenhum rascunho local salvo neste dispositivo.");
     return;
   }
-  fillForm(JSON.parse(raw));
+  fillForm(JSON.parse(raw), { preserveConductChoices: true });
   $("statusBadge").textContent = "rascunho carregado";
 }
 
 function clearForm() {
   if (!confirm("Deseja limpar todos os campos?")) return;
+  resetConductOverrides();
   ids.forEach((id) => {
     const el = $(id);
     if (!el) return;
     if (["hospital", "sector", "shift"].includes(id)) return;
-    if (el.type === "checkbox") el.checked = ["condVitals", "condComfort", "condObservation"].includes(id);
+    if (el.type === "checkbox") el.checked = CONDUCT_DEFAULT_IDS.includes(id);
     else el.value = "";
   });
   fillWounds([]);
@@ -1068,6 +1498,7 @@ function clearForm() {
 }
 
 function applyDefaultPatient() {
+  resetConductOverrides();
   fillForm({
     ...collectForm(),
     companionStatus: value("companionStatus") || "sem",
@@ -1124,6 +1555,7 @@ function downloadTxt() {
 
 function init() {
   bindAutoUpdate(document);
+  normalizeVisibleText(document);
 
   $("btnDefault").addEventListener("click", applyDefaultPatient);
   $("btnClear").addEventListener("click", clearForm);
@@ -1149,6 +1581,9 @@ function init() {
   $("btnCloseMorse").addEventListener("click", () => $("morseDialog").close());
   $("btnResetBraden").addEventListener("click", () => resetScaleFields(["bradenSensory", "bradenMoisture", "bradenActivity", "bradenMobilityCalc", "bradenNutrition", "bradenFriction"], syncBradenSummary));
   $("btnResetMorse").addEventListener("click", () => resetScaleFields(["morseHistory", "morseSecondaryDiagnosis", "morseAmbulationAid", "morseIvAccess", "morseGait", "morseMentalStatus"], syncMorseSummary));
+  $("btnCloseBodyMap").addEventListener("click", () => $("bodyMapDialog").close());
+  $("btnCancelBodyMap").addEventListener("click", () => $("bodyMapDialog").close());
+  $("btnApplyBodyMap").addEventListener("click", applyBodyMapDialogSelection);
   $("btnApplyBraden").addEventListener("click", () => {
     const result = getBradenCalculation();
     if (!result.complete) return;
@@ -1176,10 +1611,12 @@ function init() {
 
   fillWounds([]);
   if (!has(value("signature"))) $("signature").value = DEFAULT_SIGNATURE;
+  $("signature").value = repairMojibakeText($("signature").value);
   syncBradenSummary();
   syncMorseSummary();
   toggleConditionals();
   generateEvolution();
+  normalizeVisibleText(document);
 }
 
 init();
