@@ -931,6 +931,12 @@ function accessDressingText() {
   return [map[d] || "", obs].filter(has).join(", ");
 }
 
+function accessLocationText() {
+  const selected = value("accessLocation");
+  if (selected === "custom") return value("accessLocationCustom");
+  return selected;
+}
+
 function getHeader() {
   const lines = [];
   lines.push(line(value("hospital")));
@@ -1130,7 +1136,7 @@ function getAccessSentence() {
   const type = value("accessType");
   if (!has(type)) return "";
   if (type === "none") return "Desprovido(a) de acesso venoso no momento.";
-  const loc = value("accessLocation") || "local não especificado";
+  const loc = accessLocationText() || "local não especificado";
   const dressing = accessDressingText();
   const suffix = dressing ? `, ${dressing}` : ", prvio, com fixao adequada, sem sinais flogsticos aparentes";
 

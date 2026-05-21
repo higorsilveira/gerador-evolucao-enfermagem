@@ -299,7 +299,19 @@
               </select>
             </label>
             <label>Local/membro do acesso
-              <input id="accessLocation" placeholder="Ex.: MSE, subclávia direita, jugular E" />
+              <select id="accessLocation">
+                <option value=""></option>
+                <option value="MSE">MSE</option>
+                <option value="MSD">MSD</option>
+                <option value="subclávia direita">Subclávia Direita</option>
+                <option value="subclávia esquerda">Subclávia Esquerda</option>
+                <option value="jugular esquerda">Jugular Esquerda</option>
+                <option value="jugular direita">Jugular Direita</option>
+                <option value="custom">Personalizado</option>
+              </select>
+            </label>
+            <label class="conditional" data-show="accessLocation:custom">Descrever local/membro do acesso
+              <input id="accessLocationCustom" placeholder="Ex.: membro inferior direito, femoral E" />
             </label>
             <label>Aspecto do curativo do acesso
               <select id="accessDressing">
