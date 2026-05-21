@@ -790,20 +790,95 @@ function resetScaleFields(ids, syncFn) {
 }
 
 function parseDateValue(text) {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text);
-  if (!match) return null;
-  const year = Number(match[1]);
-  const month = Number(match[2]);
-  const day = Number(match[3]);
+  const normalized = String(text || "").trim();
+  let day;
+  let month;
+  let year;
+
+  let match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(normalized);
+  if (match) {
+    year = Number(match[1]);
+    month = Number(match[2]);
+    day = Number(match[3]);
+  } else {
+    match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(normalized);
+    if (!match) return null;
+    day = Number(match[1]);
+    month = Number(match[2]);
+    year = Number(match[3]);
+  }
+
   const date = new Date(year, month - 1, day);
   if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) return null;
   return { year, month, day };
+}
+
+function formatDateISO(text) {
+  const date = parseDateValue(text);
+  if (!date) return "";
+  return `${date.year}-${String(date.month).padStart(2, "0")}-${String(date.day).padStart(2, "0")}`;
 }
 
 function formatDateBR(text) {
   const date = parseDateValue(text);
   if (!date) return "";
   return `${String(date.day).padStart(2, "0")}/${String(date.month).padStart(2, "0")}/${date.year}`;
+}
+
+function normalizeDateTyping(text) {
+  const digits = String(text || "").replace(/\D/g, "").slice(0, 8);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+}
+
+function setupBirthDateField() {
+  const visibleInput = $("patientBirthDate");
+  const pickerInput = document.querySelector("[data-birth-picker]");
+  const pickerButton = $("btnBirthDatePicker");
+  if (!visibleInput || !pickerInput || !pickerButton) return;
+
+  const syncPickerFromVisible = () => {
+    pickerInput.value = formatDateISO(visibleInput.value);
+  };
+
+  visibleInput.addEventListener("input", () => {
+    const normalized = normalizeDateTyping(visibleInput.value);
+    if (visibleInput.value !== normalized) {
+      visibleInput.value = normalized;
+      try {
+        visibleInput.setSelectionRange(normalized.length, normalized.length);
+      } catch (error) {
+        // Ignore browsers that do not support selection control here.
+      }
+    }
+    syncPickerFromVisible();
+  });
+
+  visibleInput.addEventListener("blur", () => {
+    const formatted = formatDateBR(visibleInput.value);
+    if (formatted) visibleInput.value = formatted;
+    syncPickerFromVisible();
+  });
+
+  pickerInput.addEventListener("change", () => {
+    visibleInput.value = formatDateBR(pickerInput.value);
+    visibleInput.dispatchEvent(new Event("input", { bubbles: true }));
+    visibleInput.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+
+  pickerButton.addEventListener("click", () => {
+    syncPickerFromVisible();
+    if (typeof pickerInput.showPicker === "function") {
+      pickerInput.showPicker();
+      return;
+    }
+    pickerInput.focus();
+    pickerInput.click();
+  });
+
+  visibleInput.value = formatDateBR(visibleInput.value) || visibleInput.value;
+  syncPickerFromVisible();
 }
 
 function ageFromBirthDate(text) {
@@ -1457,6 +1532,10 @@ function fillForm(data, options = {}) {
     if (el.type === "checkbox") el.checked = Boolean(data[id]);
     else el.value = data[id];
   });
+  if ($("patientBirthDate")) {
+    $("patientBirthDate").value = formatDateBR($("patientBirthDate").value) || $("patientBirthDate").value;
+    $("patientBirthDate").dispatchEvent(new Event("input", { bubbles: true }));
+  }
   if (options.preserveConductChoices) {
     markConductOverridesFromData(data);
   }
@@ -1556,6 +1635,7 @@ function downloadTxt() {
 function init() {
   bindAutoUpdate(document);
   normalizeVisibleText(document);
+  setupBirthDateField();
 
   $("btnDefault").addEventListener("click", applyDefaultPatient);
   $("btnClear").addEventListener("click", clearForm);

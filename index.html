@@ -40,7 +40,11 @@
               <input id="patientName" placeholder="Nome completo" />
             </label>
             <label>Data de nascimento
-              <input id="patientBirthDate" type="date" />
+              <div class="date-input-wrap">
+                <input id="patientBirthDate" type="text" inputmode="numeric" autocomplete="bday" placeholder="DD/MM/AAAA" maxlength="10" />
+                <button type="button" class="secondary date-picker-button" id="btnBirthDatePicker" aria-label="Abrir calendário da data de nascimento">Calendário</button>
+              </div>
+              <input type="date" data-birth-picker tabindex="-1" aria-hidden="true" class="date-picker-proxy" />
             </label>
             <label>Leito
               <input id="bed" placeholder="Ex.: 405.2" />

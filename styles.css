@@ -203,6 +203,28 @@ fieldset {
   font-size: 0.9rem;
 }
 
+.date-input-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.date-picker-button {
+  white-space: nowrap;
+}
+
+.date-picker-proxy {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
 fieldset {
   border: 1px dashed var(--border);
   border-radius: 14px;
@@ -654,7 +676,8 @@ button.ghost:hover {
   .wound-entry-grid,
   .scale-grid,
   .scale-field,
-  .body-map-grid {
+  .body-map-grid,
+  .date-input-wrap {
     grid-template-columns: 1fr;
   }
 
